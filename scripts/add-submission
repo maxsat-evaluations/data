@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+# This script normalizes input instances, adds their metadata and copies them
+# to a specified output location
+# The instances are copied to <outdir>/<family>/
+#
+# Usage: add-submission <author> <year> <family> <outdir> <instances ...>
+
+set -euo pipefail
+
+AUTHOR=$1
+shift
+YEAR=$1
+shift
+FAMILY=$1
+shift
+OUT_DIR=$1
+shift
+
+if [[ "$OUT_DIR" == */ ]]; then
+  OUT_DIR="$OUT_DIR$FAMILY"
+else
+  OUT_DIR="$OUT_DIR/$FAMILY"
+fi
+
+mkdir -p "$OUT_DIR"
+
+for inst in "$@"; do
+  instname=$(basename "$inst")
+  std_wcnf "$inst" | xz > "$OUT_DIR/$instname.xz"
+done
+
+gbd init --target wcnf_local -j8 local "$OUT_DIR"
+
+gbd set "family=$FAMILY" "local like $OUT_DIR/%"
+gbd set "submitted_in=$YEAR" "local like $OUT_DIR/%"
+gbd set "submitted_by=$AUTHOR" "local like $OUT_DIR/%"
