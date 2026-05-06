@@ -23,12 +23,29 @@ else
   OUT_DIR="$OUT_DIR/$FAMILY"
 fi
 
+>&2 echo "Adding $(ls -1 "$@" | wc -l) benchmark instances"
+
 mkdir -p "$OUT_DIR"
 
 for inst in "$@"; do
-  instname=$(basename "$inst")
-  std_wcnf "$inst" | xz > "$OUT_DIR/$instname.xz"
+  if [[ "$inst" == *.gz ]]; then
+    instname=$(basename "$inst" ".gz")
+  elif [[ "$inst" == *.xz ]]; then
+    instname=$(basename "$inst" ".xz")
+  else
+    instname=$(basename "$inst")
+  fi
+  idx=1
+  outinstname="$instname.xz"
+  while [[ -f "$OUT_DIR/$outinstname" ]]; do
+    outinstname="$instname-$idx.xz"
+    ((idx++))
+    >&2 echo "File '$OUT_DIR/$outinstname' exists already"
+  done
+  std_wcnf "$inst" | xz > "$OUT_DIR/$outinstname"
+  chmod 444 "$OUT_DIR/$outinstname"
 done
+
 
 gbd init --target wcnf_local -j8 local "$OUT_DIR"
 

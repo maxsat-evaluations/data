@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+# Convenient helper to add metadata for a set of instances already in GBD
+#
+# Usage: add-metadata <gbd query> <author> <year> <family>
+
+QUERY="$1"
+shift
+AUTHOR="$1"
+shift
+YEAR="$1"
+shift
+FAMILY="$1"
+shift
+
+echo "Adding metadata for $(gbd get "$QUERY" | wc -l) instances"
+
+gbd set "family=$FAMILY" "$QUERY"
+gbd set "submitted_in=$YEAR" "$QUERY"
+gbd set "submitted_by=$AUTHOR" "$QUERY"

@@ -3,6 +3,16 @@
 This repository contains data and scripts about the MaxSAT Evaluation
 benchmarks and results.
 
+> [!NOTE]
+> All data in this repository refers to instances standardized with
+> [`std_wcnf`](https://bitbucket.org/fbacchus/maxsat_benchmarks_code_base/) in
+> the new WCNF format (post 2022) with unit weights adjusted to `1` and
+> variable gaps closed (i.e., the output of `std_wcnf <inst>`).
+> The exact instances used in previous MSEs might produce different hashes.
+> To get the correct hash from old WCNF files, use
+> `std_wcnf <inst> > /tmp/inst.wcnf && gbd hash /tmp/inst.wcnf`
+> or similar.
+
 ## Usage
 
 The benchmark metadata is contained in GBD databases, which are SQLite database
