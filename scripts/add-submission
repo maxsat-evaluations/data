@@ -4,7 +4,7 @@
 # to a specified output location
 # The instances are copied to <outdir>/<family>/
 #
-# Usage: add-submission <author> <year> <family> <outdir> <instances ...>
+# Usage: add-submission <author> <year> <family> <outdir> <indir>
 
 set -euo pipefail
 
@@ -16,39 +16,58 @@ FAMILY=$1
 shift
 OUT_DIR=$1
 shift
+IN_DIR=$1
+shift
 
-if [[ "$OUT_DIR" == */ ]]; then
-  OUT_DIR="$OUT_DIR$FAMILY"
-else
-  OUT_DIR="$OUT_DIR/$FAMILY"
-fi
+mkdir -p "$OUT_DIR/$FAMILY"
 
->&2 echo "Adding $(ls -1 "$@" | wc -l) benchmark instances"
+OUT_DIR="$(realpath -e "$OUT_DIR/$FAMILY")"
 
-mkdir -p "$OUT_DIR"
+>&2 echo "Adding $(find "$IN_DIR" \( -name '*.wcnf' -or -name '*.wcnf.gz' -or -name '*.wcnf.xz' \) | wc -l) benchmark instances"
 
-for inst in "$@"; do
-  if [[ "$inst" == *.gz ]]; then
-    instname=$(basename "$inst" ".gz")
-  elif [[ "$inst" == *.xz ]]; then
-    instname=$(basename "$inst" ".xz")
-  else
-    instname=$(basename "$inst")
-  fi
-  idx=1
-  outinstname="$instname.xz"
-  while [[ -f "$OUT_DIR/$outinstname" ]]; do
-    outinstname="$instname-$idx.xz"
-    ((idx++))
-    >&2 echo "File '$OUT_DIR/$outinstname' exists already"
-  done
-  std_wcnf "$inst" | xz > "$OUT_DIR/$outinstname"
-  chmod 444 "$OUT_DIR/$outinstname"
-done
+FILENAMES=$(mktemp)
 
+find "$IN_DIR" -name '*.wcnf' \
+  -exec bash -c 'set -euo pipefail
+    inst="$0"
+    filename="${inst#$(realpath -e "$2")/}"
+    mkdir -p "$1/$(dirname "$filename")"
+    outfile="$1/$(dirname "$filename")/$(basename "$filename").xz"
+    std_wcnf "$inst" | xz > "$outfile"
+    chmod 444 "$outfile"
+    echo "$(gbd -d '' hash "$outfile");$filename"
+  ' {} "$OUT_DIR" "$IN_DIR" \; >> "$FILENAMES"
+find "$IN_DIR" -name '*.wcnf.gz' \
+  -exec bash -c 'set -euo pipefail
+    inst="$0"
+    filename="${inst#$(realpath -e "$2")/}"
+    mkdir -p "$1/$(dirname "$filename")"
+    outfile="$1/$(dirname "$filename")/$(basename "$filename" ".gz").xz"
+    std_wcnf "$inst" | xz > "$outfile"
+    chmod 444 "$outfile"
+    echo "$(gbd -d '' hash "$outfile");$filename"
+  ' {} "$OUT_DIR" "$IN_DIR" \; >> "$FILENAMES"
+find "$IN_DIR" -name '*.wcnf.xz' \
+  -exec bash -c 'set -euo pipefail
+    inst="$0"
+    filename="${inst#$(realpath -e "$2")/}"
+    mkdir -p "$1/$(dirname "$filename")"
+    outfile="$1/$(dirname "$filename")/$(basename "$filename" ".gz").xz"
+    xz -dc "$inst" | std_wcnf | xz > "$outfile"
+    chmod 444 "$outfile"
+    echo "$(gbd -d '' hash "$outfile");$filename"
+  ' {} "$OUT_DIR" "$IN_DIR" \; >> "$FILENAMES"
 
 gbd init --target wcnf_local -j8 local "$OUT_DIR"
 
 gbd set "family=$FAMILY" "local like $OUT_DIR/%"
 gbd set "submitted_in=$YEAR" "local like $OUT_DIR/%"
 gbd set "submitted_by=$AUTHOR" "local like $OUT_DIR/%"
+
+for line in $(cat "$FILENAMES"); do
+  hash=$(echo $line | cut -d';' -f1)
+  filename=$(echo $line | cut -d';' -f2)
+  gbd set "submitted_as=$filename" --hashes "$hash"
+done
+
+rm "$FILENAMES"
