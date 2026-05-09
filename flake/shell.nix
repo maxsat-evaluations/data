@@ -7,6 +7,7 @@
           # keep-sorted start
           nushell
           self'.packages.gbd
+          self'.packages.gbdc-tool
           self'.packages.wcnf-tools
           xz
           # keep-sorted end
