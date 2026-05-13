@@ -27,6 +27,9 @@ OUT_DIR="$(realpath -e "$OUT_DIR/$FAMILY")"
 
 FILENAMES=$(mktemp)
 
+# Dummy database to not get problems when real DBs are locked
+touch /tmp/dummy.csv
+
 find "$IN_DIR" -name '*.wcnf' \
   -exec bash -c 'set -euo pipefail
     inst="$0"
@@ -35,7 +38,7 @@ find "$IN_DIR" -name '*.wcnf' \
     outfile="$1/$(dirname "$filename")/$(basename "$filename").xz"
     std_wcnf "$inst" | xz > "$outfile"
     chmod 444 "$outfile"
-    echo "$(gbd -d '' hash "$outfile");$filename"
+    echo "$(gbd -d /tmp/dummy.csv hash "$outfile");$filename"
   ' {} "$OUT_DIR" "$IN_DIR" \; >> "$FILENAMES"
 find "$IN_DIR" -name '*.wcnf.gz' \
   -exec bash -c 'set -euo pipefail
@@ -45,7 +48,7 @@ find "$IN_DIR" -name '*.wcnf.gz' \
     outfile="$1/$(dirname "$filename")/$(basename "$filename" ".gz").xz"
     std_wcnf "$inst" | xz > "$outfile"
     chmod 444 "$outfile"
-    echo "$(gbd -d '' hash "$outfile");$filename"
+    echo "$(gbd -d /tmp/dummy.csv hash "$outfile");$filename"
   ' {} "$OUT_DIR" "$IN_DIR" \; >> "$FILENAMES"
 find "$IN_DIR" -name '*.wcnf.xz' \
   -exec bash -c 'set -euo pipefail
@@ -55,7 +58,7 @@ find "$IN_DIR" -name '*.wcnf.xz' \
     outfile="$1/$(dirname "$filename")/$(basename "$filename" ".gz").xz"
     xz -dc "$inst" | std_wcnf | xz > "$outfile"
     chmod 444 "$outfile"
-    echo "$(gbd -d '' hash "$outfile");$filename"
+    echo "$(gbd -d /tmp/dummy.csv hash "$outfile");$filename"
   ' {} "$OUT_DIR" "$IN_DIR" \; >> "$FILENAMES"
 
 gbd init --target wcnf_local -j8 local "$OUT_DIR"

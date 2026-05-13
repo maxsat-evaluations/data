@@ -16,10 +16,10 @@
             version = "5.0.1";
 
             src = fetchFromGitHub {
-              owner = "Udopia";
+              owner = "chrjabs";
               repo = "gbd";
-              tag = "gbd-tools-${finalAttrs.version}";
-              hash = "sha256-Wpj/D1MAQcR8hXfc1KJv9MX0RdRR6vlKvi/alk1c1Tg=";
+              rev = "mse-26";
+              hash = "sha256-4xOmNO/8uta8u4G4nVMIb0ZiUj1Fl5glw1wGC4Cjb78=";
             };
 
             pyproject = true;
@@ -45,6 +45,10 @@
               "gbd_init"
               "gbd_server"
             ];
+
+            postCheck = ''
+              python -m unittest
+            '';
           })
         ) { inherit (self'.packages) gbdc; };
 
