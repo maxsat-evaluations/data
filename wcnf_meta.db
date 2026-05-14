@@ -1834,7 +1834,6 @@ INSERT INTO features VALUES('c8390aca78e316cab607adf89d313366','bnn-verification
 INSERT INTO features VALUES('cf2323fd530476b8c626c968163beec9','bnn-verification','2020','unknown','unknown','masahiro-sakai','None','bnn_mnist_back_image_32_label3_adversarial_norm_inf_totalizer.wcnf');
 INSERT INTO features VALUES('d69ac802cdc9fc11acd0507079ce1485','bnn-verification','2020','unknown','unknown','masahiro-sakai','None','bnn_mnist_rot_7_label2_adversarial_norm_inf_totalizer.wcnf');
 INSERT INTO features VALUES('d71bf48fc9c680e8008879965f32c7b1','bnn-verification','2020','unknown','unknown','masahiro-sakai','None','bnn_mnist_rot_10_label4_adversarial_norm_inf_totalizer.wcnf');
-INSERT INTO features VALUES('dc2a6e8fae103ca638d6915aa5ffc970','bnn-verification','2020','unknown','unknown','masahiro-sakai','None','bnn_mnist_21_label6_adversarial_norm_inf_totalizer.wcnf');
 INSERT INTO features VALUES('de775253e4c0d435f80c5245d3e96480','bnn-verification','2020','unknown','unknown','masahiro-sakai','None','bnn_mnist_61_label8_adversarial_norm_inf_totalizer.wcnf');
 INSERT INTO features VALUES('e064bb3359bf1fccfc20526bde93a27f','bnn-verification','2020','unknown','unknown','masahiro-sakai','None','bnn_mnist_17_label7_adversarial_norm_inf_totalizer.wcnf');
 INSERT INTO features VALUES('e3d79508024e7c1cf48b1d28da6ce05a','bnn-verification','2020','unknown','unknown','masahiro-sakai','None','bnn_mnist_back_image_40_label3_adversarial_norm_inf_totalizer.wcnf');
@@ -11528,7 +11527,6 @@ INSERT INTO features VALUES('e357a40ad531454c236497ca6e538ad2','parametric-role-
 INSERT INTO features VALUES('e3e16d31438a75a014bc0faba6abb11d','parametric-role-based-access-control-maintenance','2019','unknown','unknown','marco-mori','None','unknown');
 INSERT INTO features VALUES('e4e83a8dd311e347b20eb54ffb7b24dd','parametric-role-based-access-control-maintenance','2019','unknown','unknown','marco-mori','None','unknown');
 INSERT INTO features VALUES('e4f3d6e2bbfae1ed0a5f42be0c6ce460','parametric-role-based-access-control-maintenance','2019','unknown','unknown','marco-mori','None','unknown');
-INSERT INTO features VALUES('e5594ae3df73bddc788e4b32e3c39ca6','parametric-role-based-access-control-maintenance','2019','unknown','unknown','marco-mori','None','unknown');
 INSERT INTO features VALUES('e5b6485200364e40cc536436c827150f','parametric-role-based-access-control-maintenance','2019','unknown','unknown','marco-mori','None','unknown');
 INSERT INTO features VALUES('e5e44f8f7aec1f528041980d4b6cd99a','parametric-role-based-access-control-maintenance','2019','unknown','unknown','marco-mori','None','unknown');
 INSERT INTO features VALUES('e6aa0781bbf5eae9d40baf8af409523a','parametric-role-based-access-control-maintenance','2019','unknown','unknown','marco-mori','None','unknown');
@@ -48310,7 +48308,9 @@ INSERT INTO features VALUES('54cbf7b35d7318f85888c3089fff6bc0','parametric-role-
 INSERT INTO features VALUES('a6907db3cf234e0725051e73b592a95e','parametric-role-based-access-control-maintenance','2019','unknown','unknown','marco-mori','None','unknown');
 INSERT INTO features VALUES('bfe2391238c98f6ac757db355b79cd8f','parametric-role-based-access-control-maintenance','2019','unknown','unknown','marco-mori','None','unknown');
 INSERT INTO features VALUES('faef46878ef25569d2e08109bdf9a2bc','parametric-role-based-access-control-maintenance','2019','unknown','unknown','marco-mori','None','unknown');
-INSERT INTO features VALUES('3ed04e05fc70983b993f0225d783e3e9','parametric-role-based-access-control-maintenance','2019','unknown','unknown','marco-mori','None','unknown');
+INSERT INTO features VALUES('76d226aef4fbe4197f2dbe03ce9b95f2','parametric-role-based-access-control-maintenance','2019','unknown','unknown','marco-mori','None','unknown');
+INSERT INTO features VALUES('015bc64926bb25bd2d341146c2251ac4','parametric-role-based-access-control-maintenance','2019','unknown','unknown','marco-mori','None','unknown');
+INSERT INTO features VALUES('fd3fa3ffe5a51b6af4a2f420bbab796d','bnn-verification','2020','unknown','unknown','masahiro-sakai','None','bnn_mnist_21_label6_adversarial_norm_inf_totalizer.wcnf');
 CREATE TABLE used_in (hash TEXT NOT NULL, value TEXT NOT NULL, CONSTRAINT all_unique UNIQUE(hash, value));
 INSERT INTO used_in VALUES('None','None');
 INSERT INTO used_in VALUES('00109ee8b42f79d7cc934123923271ce','2006');
