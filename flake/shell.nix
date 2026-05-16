@@ -5,10 +5,12 @@
       devShells.default = pkgs.mkShell {
         nativeBuildInputs = with pkgs; [
           # keep-sorted start
-          nushell
+          kissat
           self'.packages.gbd
           self'.packages.gbdc-tool
+          self'.packages.nushell
           self'.packages.wcnf-tools
+          unzip
           xz
           # keep-sorted end
         ];

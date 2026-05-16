@@ -1,0 +1,84 @@
+#!/usr/bin/env -S nu --
+
+use std/assert
+
+let data = http get https://maxsat-evaluations.github.io/2021/results/complete/unweighted/table-all.html
+  | query web --as-table []
+
+let solvers = $data
+  | columns
+  | where $it != Benchmark
+
+mut $runtimes = $data | select Benchmark
+mut $costs = $data | select Benchmark
+
+for slv in $solvers {
+  let slvdata = $data
+    | each --flatten {|row| $row | get $slv | parse "{time} ({cost})"}
+  $runtimes = $runtimes
+    | merge ($slvdata | select time | into float time | rename --column { time: $slv })
+  $costs = $costs
+    | merge ($slvdata | select cost | rename --column { cost: $slv })
+}
+
+$costs = $costs
+  | where {|row| ($row | reject Benchmark | values | where $it != "-" | length) > 0}
+  | each --flatten {|row|
+    let values = $row | reject Benchmark | values | where $it != "-" | into int
+    let min = $values | math min
+    let max = $values | math max
+    assert ($min == $max)
+    { Benchmark: $row.Benchmark, cost: $max }
+  }
+
+let filenames = open /mnt/tank/mse-benchmarks/tracks/2021-complete-unweighted/wcnf_filenames.csv
+  | insert shortened {|row| $row.filename | path basename}
+  | update shortened {|row|
+    # Subdirectories are converted into .n. extensions without a record of this
+    # Instances that were solved manually matched by clause count from MaxHS solver logs
+    # Remaining unsolved instances will be filled in with timeout values
+    if $row.hash == 9fe0a1e0614bcd203ed8481e6f5fbc36 {
+      "formula_0.8_2021_atleast_127_max-6_reduced_incomplete_tree.wcnf.gz.7.gz"
+    } else if $row.hash == 361f22ad58c0c6e373cf6ff845ff9b3a {
+      "formula_0.8_2021_atleast_15_max-3_reduced_incomplete_tree.wcnf.gz.4.gz"
+    } else if $row.hash == a319176b4584bae01cee4f6b9b79fda6 {
+      "formula_0.8_2021_atleast_63_max-5_reduced_incomplete_tree.wcnf.gz.4.gz"
+    } else if $row.hash == 79a139ab84179ed1ca87090084980545  {
+      "formula_0.8_2021_atleast_15_max-3_reduced_incomplete_tree.wcnf.gz.1.gz"
+    } else if $row.hash == d3dc73e5fc9316b5bdbd1c9dac3631ad {
+      "brock200_3.clq.wcnf.gz.1.gz"
+    } else if $row.hash == 02a8288962d8afc608aa398e7302c2ee {
+      "johnson8-2-4.clq.wcnf.gz.1.gz"
+    } else {
+      $row.shortened
+    }
+  }
+
+let solved_instances = $costs | length
+
+$costs = $filenames
+  | join $costs shortened Benchmark
+
+assert (($costs | length) == $solved_instances)
+
+let db_costs = gbd get --header -d ',' "used_in='2021-complete-unweighted'" -r optimal_cost best_known_cost
+  | from csv
+
+for row in $costs {
+  let db_cost = $db_costs | where hash == $row.hash | get optimal_cost
+  assert (($db_cost | length) == 1) $"none or multiple cost values for hash ($row.hash)"
+  let db_cost = $db_cost | first
+  assert (($db_cost == "unknown") or (($db_cost | into int) == $row.cost)) $"optimal cost value does not match for ($row.hash)"
+  if $db_cost == "unknown" {
+    gbd set $"optimal_cost=($row.cost)" --hashes $row.hash
+    gbd set $"best_known_cost=($row.cost)" --hashes $row.hash
+  } else {
+    assert (($db_costs | where hash == $row.hash | get best_known_cost | first | into int) == $row.cost)
+  }
+}
+
+# Note: data for duplicate filenames (only remaining are unsolved) will automatically be repeated
+$filenames
+  | join --left $runtimes shortened Benchmark
+  | select hash filename ...$solvers
+  | save results/wcnf_2021-complete-unweighted.csv

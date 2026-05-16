@@ -1,31 +1,41 @@
 #!/usr/bin/env bash
 
-# This script normalizes input instances, adds their metadata and copies them
-# to a specified output location
-# The instances are copied to <outdir>/<family>/
+# This script unpacks the zip archive of an old MSE track, normalizes all
+# instances, copies them to <outdir>/track and imports them into the database
 #
-# Usage: add-submission <author> <year> <family> <outdir> <indir>
+# Usage: add-old-benchmark-set <track> <archive> <outdir>
 
 set -euo pipefail
 
-AUTHOR=$1
+TRACK=$1
 shift
-YEAR=$1
-shift
-FAMILY=$1
+ARCHIVE=$1
 shift
 OUT_DIR=$1
 shift
-IN_DIR=$1
-shift
 
-mkdir -p "$OUT_DIR/$FAMILY"
+EXDIR="$(dirname "$ARCHIVE")/unpacked"
+mkdir "$EXDIR"
 
-OUT_DIR="$(realpath -e "$OUT_DIR/$FAMILY")"
+unzip -d "$EXDIR" "$ARCHIVE"
+
+IN_DIR="$EXDIR"
+if [ $(ls -1 "$IN_DIR" | wc -l) -eq 1 ]; then
+  if [ -d "$IN_DIR/$(ls -1 "$IN_DIR")" ]; then
+    IN_DIR="$IN_DIR/$(ls -1 "$IN_DIR")"
+  fi
+fi
+
+>&2 echo "Importing from '$IN_DIR'"
+
+mkdir -p "$OUT_DIR/$TRACK"
+
+OUT_DIR="$(realpath -e "$OUT_DIR/$TRACK")"
 
 >&2 echo "Adding $(find "$IN_DIR" \( -name '*.wcnf' -or -name '*.wcnf.gz' -or -name '*.wcnf.xz' \) | wc -l) benchmark instances"
 
-FILENAMES=$(mktemp)
+FILENAMES="$OUT_DIR/wcnf_filenames.csv"
+echo "hash,filename" >> "$FILENAMES"
 
 # Dummy database to not get problems when real DBs are locked
 touch /tmp/dummy.csv
@@ -38,7 +48,7 @@ find "$IN_DIR" -name '*.wcnf' \
     outfile="$1/$(dirname "$filename")/$(basename "$filename").xz"
     std_wcnf "$inst" | xz > "$outfile"
     chmod 444 "$outfile"
-    echo "$(gbd -d /tmp/dummy.csv hash "$outfile");$filename"
+    echo "$(gbd -d /tmp/dummy.csv hash "$outfile"),$filename"
   ' {} "$OUT_DIR" "$IN_DIR" \; >> "$FILENAMES"
 find "$IN_DIR" -name '*.wcnf.gz' \
   -exec bash -c 'set -euo pipefail
@@ -48,7 +58,7 @@ find "$IN_DIR" -name '*.wcnf.gz' \
     outfile="$1/$(dirname "$filename")/$(basename "$filename" ".gz").xz"
     std_wcnf "$inst" | xz > "$outfile"
     chmod 444 "$outfile"
-    echo "$(gbd -d /tmp/dummy.csv hash "$outfile");$filename"
+    echo "$(gbd -d /tmp/dummy.csv hash "$outfile"),$filename"
   ' {} "$OUT_DIR" "$IN_DIR" \; >> "$FILENAMES"
 find "$IN_DIR" -name '*.wcnf.xz' \
   -exec bash -c 'set -euo pipefail
@@ -58,19 +68,11 @@ find "$IN_DIR" -name '*.wcnf.xz' \
     outfile="$1/$(dirname "$filename")/$(basename "$filename")"
     xz -dc "$inst" | std_wcnf | xz > "$outfile"
     chmod 444 "$outfile"
-    echo "$(gbd -d /tmp/dummy.csv hash "$outfile");$filename"
+    echo "$(gbd -d /tmp/dummy.csv hash "$outfile"),$filename"
   ' {} "$OUT_DIR" "$IN_DIR" \; >> "$FILENAMES"
+
+rm -rf "$EXDIR"
 
 gbd init --target wcnf_local -j8 local "$OUT_DIR"
 
-gbd set "family=$FAMILY" "local like $OUT_DIR/%"
-gbd set "submitted_in=$YEAR" "local like $OUT_DIR/%"
-gbd set "submitted_by=$AUTHOR" "local like $OUT_DIR/%"
-
-for line in $(cat "$FILENAMES"); do
-  hash=$(echo $line | cut -d';' -f1)
-  filename=$(echo $line | cut -d';' -f2)
-  gbd set "submitted_as=$filename" --hashes "$hash"
-done
-
-rm "$FILENAMES"
+gbd set "used_in=$TRACK" "local like $OUT_DIR/%"
