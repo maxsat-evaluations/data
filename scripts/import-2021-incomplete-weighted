@@ -32,7 +32,7 @@ let duplicates = $data
 
 let solvers = $data
   | columns
-  | where not ($it in ["Instance" "BestSol" "filename"])
+  | where $it not-in ["Instance" "BestSol" "filename"]
 
 mut $scores = $data | select filename
 mut $costs = $data | select filename "BestSol"
@@ -105,7 +105,7 @@ let data = http get https://maxsat-evaluations.github.io/2021/results/incomplete
 
 let solvers = $data
   | columns
-  | where not ($it in ["Instance" "Best Sol" "filename"])
+  | where $it not-in ["Instance" "Best Sol" "filename"]
 
 mut $scores = $data | select filename
 mut $costs = $data | select filename "Best Sol"
