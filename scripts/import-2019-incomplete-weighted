@@ -22,7 +22,7 @@ let data = http get https://maxsat-evaluations.github.io/2019/results/incomplete
   | insert filename {|row|
     let matches = $filenames | where hash == $row.hash
     assert (($matches | length) == 1) $"no matches for ($row.Benchmark)"
-    $matches | first | get local | str replace "/mnt/tank/mse-benchmarks/ms_evals/MS19/mse19-incomplete-weighted/" ""
+    $matches | first | get local | str replace "/mnt/tank/mse-benchmarks/ms_evals/MS19/mse19-incomplete-weighted-benchmarks/" ""
   }
 
 let solvers = $data
@@ -87,7 +87,7 @@ let data = http get https://maxsat-evaluations.github.io/2019/results/incomplete
   | insert filename {|row|
     let matches = $filenames | where hash == $row.hash
     assert (($matches | length) == 1) $"no matches for ($row.Benchmark)"
-    $matches | first | get local | str replace "/mnt/tank/mse-benchmarks/ms_evals/MS19/mse19-incomplete-weighted/" ""
+    $matches | first | get local | str replace "/mnt/tank/mse-benchmarks/ms_evals/MS19/mse19-incomplete-weighted-benchmarks/" ""
   }
 
 let solvers = $data

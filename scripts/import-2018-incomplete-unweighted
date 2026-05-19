@@ -2,19 +2,17 @@
 
 use std/assert
 
-let filenames = gbd get --header -d ',' "used_in='2019-incomplete-unweighted'" -g local -r hash
+let filenames = gbd get --header -d ',' "used_in='2018-incomplete-unweighted'" -g local -r hash
   | from csv
-  | where local =~ "/mnt/tank/mse-benchmarks/ms_evals/MS19/mse19-incomplete-unweighted-benchmarks/"
+  | where local =~ "/mnt/tank/mse-benchmarks/ms_evals/MS18/mse18-incomplete-unweighted-benchmarks/"
 
 # === 60s ===
 
-let data = http get https://maxsat-evaluations.github.io/2019/results/incomplete/unweighted-60s/table-all.html
+let data = http get https://maxsat-evaluations.github.io/2018/results/incomplete/unweighted-60s/table-all.html
   | query web --as-table []
   | insert hash {|row|
     # Escape '+' symbol
     let bench = $row.Benchmark
-      | str replace ".gz" ""
-      | str replace ".dimacs_mod" ""
     let matches = $filenames | where local =~ $bench
     assert (($matches | length) == 1) $"no matches for ($row.Benchmark)"
     $matches | first | get hash
@@ -22,7 +20,7 @@ let data = http get https://maxsat-evaluations.github.io/2019/results/incomplete
   | insert filename {|row|
     let matches = $filenames | where hash == $row.hash
     assert (($matches | length) == 1) $"no matches for ($row.Benchmark)"
-    $matches | first | get local | str replace "/mnt/tank/mse-benchmarks/ms_evals/MS19/mse19-incomplete-unweighted-benchmarks/" ""
+    $matches | first | get local | str replace "/mnt/tank/mse-benchmarks/ms_evals/MS18/mse18-incomplete-unweighted-benchmarks/" ""
   }
 
 let solvers = $data
@@ -48,7 +46,7 @@ $costs = $costs
     $values | math min
   }
 
-let db_costs = gbd get --header -d ',' "used_in='2019-incomplete-unweighted'" -r optimal_cost best_known_cost
+let db_costs = gbd get --header -d ',' "used_in='2018-incomplete-unweighted'" -r optimal_cost best_known_cost
   | from csv
 
 for row in $costs {
@@ -69,17 +67,15 @@ $scores
   | rename --column ($solvers | each {|slv| { $slv: $"($slv)_score" } } | into record)
   | join ($costs | rename --column ($solvers | each {|slv| { $slv: $"($slv)_cost" } } | into record)) hash hash
   | select hash filename ...($solvers | each {|slv| [$"($slv)_score" $"($slv)_cost"]} | flatten)
-  | save results/wcnf_2019-incomplete-unweighted-60s.csv
+  | save results/wcnf_2018-incomplete-unweighted-60s.csv
 
 # === 300s ===
 
-let data = http get https://maxsat-evaluations.github.io/2019/results/incomplete/unweighted-300s/table-all.html
+let data = http get https://maxsat-evaluations.github.io/2018/results/incomplete/unweighted-300s/table-all.html
   | query web --as-table []
   | insert hash {|row|
     # Escape '+' symbol
     let bench = $row.Benchmark
-      | str replace ".gz" ""
-      | str replace ".dimacs_mod" ""
     let matches = $filenames | where local =~ $bench
     assert (($matches | length) == 1) $"no matches for ($row.Benchmark)"
     $matches | first | get hash
@@ -87,7 +83,7 @@ let data = http get https://maxsat-evaluations.github.io/2019/results/incomplete
   | insert filename {|row|
     let matches = $filenames | where hash == $row.hash
     assert (($matches | length) == 1) $"no matches for ($row.Benchmark)"
-    $matches | first | get local | str replace "/mnt/tank/mse-benchmarks/ms_evals/MS19/mse19-incomplete-unweighted-benchmarks/" ""
+    $matches | first | get local | str replace "/mnt/tank/mse-benchmarks/ms_evals/MS18/mse18-incomplete-unweighted-benchmarks/" ""
   }
 
 let solvers = $data
@@ -131,4 +127,4 @@ $scores
   | rename --column ($solvers | each {|slv| { $slv: $"($slv)_score" } } | into record)
   | join ($costs | rename --column ($solvers | each {|slv| { $slv: $"($slv)_cost" } } | into record)) hash hash
   | select hash filename ...($solvers | each {|slv| [$"($slv)_score" $"($slv)_cost"]} | flatten)
-  | save results/wcnf_2019-incomplete-unweighted-300s.csv
+  | save results/wcnf_2018-incomplete-unweighted-300s.csv
