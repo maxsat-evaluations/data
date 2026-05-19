@@ -40,7 +40,7 @@ echo "hash,filename" >> "$FILENAMES"
 # Dummy database to not get problems when real DBs are locked
 touch /tmp/dummy.csv
 
-find "$IN_DIR" -name '*.wcnf' \
+find "$IN_DIR" -name '*.wcnf' -not -name '.*' \
   -exec bash -c 'set -euo pipefail
     inst="$0"
     filename="${inst#$(realpath -e "$2")/}"
@@ -50,7 +50,7 @@ find "$IN_DIR" -name '*.wcnf' \
     chmod 444 "$outfile"
     echo "$(gbd -d /tmp/dummy.csv hash "$outfile"),$filename"
   ' {} "$OUT_DIR" "$IN_DIR" \; >> "$FILENAMES"
-find "$IN_DIR" -name '*.wcnf.gz' \
+find "$IN_DIR" -name '*.wcnf.gz' -not -name '.*' \
   -exec bash -c 'set -euo pipefail
     inst="$0"
     filename="${inst#$(realpath -e "$2")/}"
@@ -60,7 +60,7 @@ find "$IN_DIR" -name '*.wcnf.gz' \
     chmod 444 "$outfile"
     echo "$(gbd -d /tmp/dummy.csv hash "$outfile"),$filename"
   ' {} "$OUT_DIR" "$IN_DIR" \; >> "$FILENAMES"
-find "$IN_DIR" -name '*.wcnf.xz' \
+find "$IN_DIR" -name '*.wcnf.xz' -not -name '.*' \
   -exec bash -c 'set -euo pipefail
     inst="$0"
     filename="${inst#$(realpath -e "$2")/}"
