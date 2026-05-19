@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+# Disqualify instances with unsat hard clauses
+gbd set "disqualified=yes" "unsat=true"
+
+# Disqualify random instances
+gbd set "disqualified=yes" "used_in like %random%"
+
+# Disqualify with optimal cost 0
+gbd set "disqualified=yes" "optimal_cost=0 and not optimal_cost=unknown"
+
+# Families that were decided to be excluded in previous MSEs
+
+# Pathological case for IHS?
+gbd set "disqualified=yes" "family=drmx-atmostk"
+
+gbd set "disqualified=yes" "family=maximum-common-subgraph"
+
+gbd set "disqualified=yes" "family=parametric-role-based-access-control-maintenance"
+
+# Random
+gbd set "disqualified=yes" "family=set-covering"
+
+# TODO these (random) families are not properly tracked yet
+gbd set "disqualified=yes" "family=max-clique"
+gbd set "disqualified=yes" "family=max-cut"
+gbd set "disqualified=yes" "family=max-csp"
