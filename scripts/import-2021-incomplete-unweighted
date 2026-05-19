@@ -38,14 +38,14 @@ mut $costs = $data | select filename "Best Sol"
 for slv in $solvers {
   let slvdata = $data
     | each --flatten {|row|
-      let rec = $row | get $slv | parse "{time} ({cost})"
+      let rec = $row | get $slv | parse "{score} ({cost})"
       for cost in $rec.cost {
         assert (($cost == "-") or (($cost | into int) >= ($row | get "Best Sol")))
       }
       $rec
     }
   $scores = $scores
-    | merge ($slvdata | select time | into float time | rename --column { time: $slv })
+    | merge ($slvdata | select score | into float score | rename --column { score: $slv })
   $costs = $costs
     | merge ($slvdata | select cost | rename --column { cost: $slv })
 }
@@ -111,14 +111,14 @@ mut $costs = $data | select filename "Best Sol"
 for slv in $solvers {
   let slvdata = $data
     | each --flatten {|row|
-      let rec = $row | get $slv | parse "{time} ({cost})"
+      let rec = $row | get $slv | parse "{score} ({cost})"
       for cost in $rec.cost {
         assert (($cost == "-") or (($cost | into int) >= ($row | get "Best Sol")))
       }
       $rec
     }
   $scores = $scores
-    | merge ($slvdata | select time | into float time | rename --column { time: $slv })
+    | merge ($slvdata | select score | into float score | rename --column { score: $slv })
   $costs = $costs
     | merge ($slvdata | select cost | rename --column { cost: $slv })
 }
