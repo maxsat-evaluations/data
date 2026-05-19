@@ -1,0 +1,146 @@
+#!/usr/bin/env -S nu --
+
+use std/assert
+
+let filenames = gbd get --header -d ',' "used_in='2017-incomplete-weighted'" -g local -r hash
+  | from csv
+  | where local =~ "/mnt/tank/mse-benchmarks/ms_evals/MS17/mse17-incomplete-weighted-benchmarks/"
+
+# === 60s ===
+
+let data = http get https://maxsat-evaluations.github.io/2017/results/incomplete/weighted-60s/table-extended-incomplete-weighted-60s.html
+  | query web --as-table []
+  | insert hash {|row|
+    # Escape '+' symbol
+    let bench = $row.Benchmark | str replace "/" "-"
+    let matches = $filenames | where local =~ $bench
+    assert (($matches | length) == 1) $"no matches for ($row.Benchmark)"
+    $matches | first | get hash
+  }
+  | insert filename {|row|
+    let bench = $row.Benchmark | str replace "/" "-"
+    let matches = $filenames | where hash == $row.hash | where local =~ $bench
+    assert (($matches | length) == 1) $"no matches for ($row.Benchmark)"
+    $matches | first | get local | str replace "/mnt/tank/mse-benchmarks/ms_evals/MS17/mse17-incomplete-weighted-benchmarks/" ""
+  }
+
+let solvers = $data
+  | columns
+  | where $it not-in [Benchmark hash filename]
+
+mut $scores = $data | select hash filename
+mut $costs = $data | select hash
+
+for slv in $solvers {
+  let slvdata = $data
+    | each --flatten {|row| $row | get $slv | parse "{score} ({cost})"}
+  $scores = $scores
+    | merge ($slvdata | select score | into float score | rename --column { score: $slv })
+  $costs = $costs
+    | merge ($slvdata | select cost | rename --column { cost: $slv })
+}
+
+$costs = $costs
+  | where {|row| ($row | reject hash | values | where $it != "-" | length) > 0}
+  | insert best {|row|
+    mut dat = $row
+    if $row.hash == 4092d332781d0ada9223479eacde1409 or $row.hash == 4515bfdc874f644ed81e05cdefc6f740 or $row.hash == 88f5c28d1b5169e6006974ef79c15be9 or $row.hash == e1b16b06bbce9e3a1907a29f78b45e88 or $row.hash == 6be4fb2b959efcc30e8def677277e8c7 {
+      $dat.CCEHC✝ = 1111111111111111111
+      $dat.Dist✝ = 1111111111111111111
+    }
+    let values = $dat | reject hash | values | where $it != "-" | into int
+    $values | math min
+  }
+
+let db_costs = gbd get --header -d ',' "used_in='2017-incomplete-weighted'" -r optimal_cost best_known_cost
+  | from csv
+
+for row in $costs {
+  if ($row | get best | is-empty) {
+    continue
+  }
+  let db_cost = $db_costs | where hash == $row.hash | get optimal_cost
+  assert (($db_cost | length) == 1) $"none or multiple cost values for hash ($row.hash)"
+  let db_cost = $db_cost | first
+  if not (($db_cost == "unknown") or (($db_cost | into int) <= $row.best)) {
+    echo $"skipping incorrect result for ($row.hash)"
+    continue
+  }
+  assert (($db_cost == "unknown") or (($db_cost | into int) <= $row.best)) $"optimal cost value does not match for ($row.hash)"
+  let db_best_known = $db_costs | where hash == $row.hash | get best_known_cost | first
+  if ($db_best_known == "unknown") or (($db_best_known | into int) > $row.best) {
+    gbd set $"best_known_cost=($row.best)" --hashes $row.hash
+  }
+}
+
+$scores
+  | rename --column ($solvers | each {|slv| { $slv: $"($slv)_score" } } | into record)
+  | join ($costs | rename --column ($solvers | each {|slv| { $slv: $"($slv)_cost" } } | into record)) hash hash
+  | select hash filename ...($solvers | each {|slv| [$"($slv)_score" $"($slv)_cost"]} | flatten)
+  | save results/wcnf_2017-incomplete-weighted-60s.csv
+
+# === 300s ===
+
+let data = http get https://maxsat-evaluations.github.io/2017/results/incomplete/weighted-300s/table-extended-incomplete-weighted-300s.html
+  | query web --as-table []
+  | insert hash {|row|
+    # Escape '+' symbol
+    let bench = $row.Benchmark | str replace "/" "-"
+    let matches = $filenames | where local =~ $bench
+    assert (($matches | length) == 1) $"no matches for ($row.Benchmark)"
+    $matches | first | get hash
+  }
+  | insert filename {|row|
+    let bench = $row.Benchmark | str replace "/" "-"
+    let matches = $filenames | where hash == $row.hash | where local =~ $bench
+    assert (($matches | length) == 1) $"no matches for ($row.Benchmark)"
+    $matches | first | get local | str replace "/mnt/tank/mse-benchmarks/ms_evals/MS17/mse17-incomplete-weighted-benchmarks/" ""
+  }
+
+let solvers = $data
+  | columns
+  | where $it not-in [Benchmark hash filename]
+
+mut $scores = $data | select hash filename
+mut $costs = $data | select hash
+
+for slv in $solvers {
+  let slvdata = $data
+    | each --flatten {|row| $row | get $slv | parse "{score} ({cost})"}
+  $scores = $scores
+    | merge ($slvdata | select score | into float score | rename --column { score: $slv })
+  $costs = $costs
+    | merge ($slvdata | select cost | rename --column { cost: $slv })
+}
+
+$costs = $costs
+  | where {|row| ($row | reject hash | values | where $it != "-" | length) > 0}
+  | insert best {|row|
+    mut dat = $row
+    if $row.hash == 4092d332781d0ada9223479eacde1409 or $row.hash == 4515bfdc874f644ed81e05cdefc6f740 or $row.hash == 88f5c28d1b5169e6006974ef79c15be9 or $row.hash == e1b16b06bbce9e3a1907a29f78b45e88 or $row.hash == 6be4fb2b959efcc30e8def677277e8c7 {
+      $dat.CCEHC✝ = 1111111111111111111
+      $dat.Dist✝ = 1111111111111111111
+    }
+    let values = $dat | reject hash | values | where $it != "-" | into int
+    $values | math min
+  }
+
+for row in $costs {
+  if ($row | get best | is-empty) {
+    continue
+  }
+  let db_cost = $db_costs | where hash == $row.hash | get optimal_cost
+  assert (($db_cost | length) == 1) $"none or multiple cost values for hash ($row.hash)"
+  let db_cost = $db_cost | first
+  assert (($db_cost == "unknown") or (($db_cost | into int) <= $row.best)) $"optimal cost value does not match for ($row.hash)"
+  let db_best_known = $db_costs | where hash == $row.hash | get best_known_cost | first
+  if ($db_best_known == "unknown") or (($db_best_known | into int) > $row.best) {
+    gbd set $"best_known_cost=($row.best)" --hashes $row.hash
+  }
+}
+
+$scores
+  | rename --column ($solvers | each {|slv| { $slv: $"($slv)_score" } } | into record)
+  | join ($costs | rename --column ($solvers | each {|slv| { $slv: $"($slv)_cost" } } | into record)) hash hash
+  | select hash filename ...($solvers | each {|slv| [$"($slv)_score" $"($slv)_cost"]} | flatten)
+  | save results/wcnf_2017-incomplete-weighted-300s.csv

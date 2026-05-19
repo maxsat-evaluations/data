@@ -1,4 +1,4 @@
-hash,filename,QMaxSATuc,MSUSorting,Open-WBO-LSU,Open-WBO-MSE16✝,CPLEX✝,LMHS,MaxHS,Open-WBO-RES,maxino,Z3✝,QMaxSAT
+hash,filename,QMaxSATuc,MSUSorting,Open-WBO-LSU,Open-WBO-MSE16,CPLEX,LMHS,MaxHS,Open-WBO-RES,maxino,Z3,QMaxSAT
 84e547e5bdb5bf35ffb1b48685a2137b,extension-enforcement/extension-enforcement_non-strict_stb_150_0.05_1_8_3.wcnf.xz,3600.0,3600.0,3600.0,3600.0,12.59,688.27,3600.0,3600.0,3600.0,3600.0,3600.0
 b8542ec3b52828541e8d3af53118897c,extension-enforcement/extension-enforcement_non-strict_stb_150_0.05_2_8_3.wcnf.xz,3600.0,3600.0,3600.0,3600.0,42.47,1923.83,3600.0,3600.0,3600.0,3600.0,3600.0
 ac10c889d10b3a85a42459c7e0025070,extension-enforcement/extension-enforcement_non-strict_stb_150_0.05_2_8_4.wcnf.xz,3600.0,3600.0,3600.0,3600.0,17.24,1327.36,3600.0,3600.0,3600.0,3600.0,3600.0

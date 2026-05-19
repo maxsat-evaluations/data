@@ -1,4 +1,4 @@
-hash,filename,Loandra-P,Loandra-I,Open-WBO-LSU,CPLEX✝,maxino,Open-WBO-OLL,LMHS,MaxHS,QMaxSATuc,Z3✝,QMaxSAT,MaxHS-MSE16,Loandra-S
+hash,filename,Loandra-P,Loandra-I,Open-WBO-LSU,CPLEX,maxino,Open-WBO-OLL,LMHS,MaxHS,QMaxSATuc,Z3,QMaxSAT,MaxHS-MSE16,Loandra-S
 a2300a0f69241062c9528bbea98555b5,auc-paths/cat_paths_60_130_0000.txt.wcnf.xz,0.71,0.71,3600.0,0.02,0.22,0.37,0.07,0.04,22.81,1927.03,21.06,0.04,0.52
 3d8522fbceff3abcb97705a1da71c232,auc-paths/cat_paths_60_130_0001.txt.wcnf.xz,0.66,0.68,3600.0,0.02,0.27,0.69,0.07,0.04,143.42,1382.1,88.68,0.08,1.6
 1a6fc3d0dc0ee4760d2afb9246a8941d,auc-paths/cat_paths_60_130_0002.txt.wcnf.xz,0.55,0.55,3600.0,0.02,0.48,0.23,0.06,0.06,208.68,77.9,319.78,0.05,1.05
