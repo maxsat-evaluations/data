@@ -1,0 +1,64 @@
+#!/usr/bin/env -S nu --
+
+use std/assert
+
+let data = http get https://maxsat-evaluations.github.io/2022/results/complete/unweighted/table-all.html
+  | query web --as-table []
+
+let solvers = $data
+  | columns
+  | where $it != Benchmark
+
+mut $runtimes = $data | select Benchmark
+mut $costs = $data | select Benchmark
+
+for slv in $solvers {
+  let slvdata = $data
+    | each --flatten {|row| $row | get $slv | parse "{time} ({cost})"}
+  $runtimes = $runtimes
+    | merge ($slvdata | select time | into float time | rename --column { time: $slv })
+  $costs = $costs
+    | merge ($slvdata | select cost | rename --column { cost: $slv })
+}
+
+$costs = $costs
+  | where {|row| ($row | reject Benchmark | values | where $it != "-" | length) > 0}
+  | each --flatten {|row|
+    let values = $row | reject Benchmark | values | where $it != "-" | into int
+    let min = $values | math min
+    let max = $values | math max
+    assert ($min == $max)
+    { Benchmark: $row.Benchmark, cost: $max }
+  }
+
+let filenames = open /mnt/tank/mse-benchmarks/tracks/2022-complete-unweighted/wcnf_filenames.csv
+  | insert shortened {|row| $row.filename | path basename}
+
+let solved_instances = $costs | length
+
+$costs = $filenames
+  | join $costs shortened Benchmark
+
+assert (($costs | length) == $solved_instances)
+
+let db_costs = gbd get --header -d ',' "used_in='2022-complete-unweighted'" -r optimal_cost best_known_cost
+  | from csv
+
+for row in $costs {
+  let db_cost = $db_costs | where hash == $row.hash | get optimal_cost
+  assert (($db_cost | length) == 1) $"none or multiple cost values for hash ($row.hash)"
+  let db_cost = $db_cost | first
+  assert (($db_cost == "unknown") or (($db_cost | into int) == $row.cost)) $"optimal cost value does not match for ($row.hash)"
+  if $db_cost == "unknown" {
+    gbd set $"optimal_cost=($row.cost)" --hashes $row.hash
+    gbd set $"best_known_cost=($row.cost)" --hashes $row.hash
+  } else {
+    assert (($db_costs | where hash == $row.hash | get best_known_cost | first | into int) == $row.cost)
+  }
+}
+
+# Note: data for duplicate filenames (only remaining are unsolved) will automatically be repeated
+$filenames
+  | join --left $runtimes shortened Benchmark
+  | select hash filename ...$solvers
+  | save results/wcnf_2022-complete-unweighted.csv

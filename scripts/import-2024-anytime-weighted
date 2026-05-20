@@ -1,0 +1,104 @@
+#!/usr/bin/env -S nu --
+
+use std/assert
+
+# === 60s ===
+
+# Note: tables have to manually be fixed up
+let data = open 60s-weighted.html
+  | query web --as-table []
+  | rename --column {"": "Instance"}
+
+let solvers = $data
+  | columns
+  | where $it not-in ["Instance" "Best-Sol" "Instance"]
+
+mut $costs = $data | select Instance "Best-Sol"
+
+for slv in $solvers {
+  let slvdata = $data
+    | each --flatten {|row|
+      assert (($row.Best-Sol =~ "Missing column") or (($row | get $slv) =~ "Missing column") or (($row.Best-Sol | into int) <= ($row | get $slv | into int)))
+      if ($row | get $slv) =~ "Missing column" {
+        {Instance: $row.Instance, $slv: ""}
+      } else {
+        {Instance: $row.Instance, $slv: ($row | get $slv | into int)}
+      }
+    }
+  $costs = $costs
+    | join $slvdata Instance Instance
+}
+
+let filenames = open /mnt/tank/mse-benchmarks/tracks/2024-anytime-weighted/wcnf_filenames.csv
+
+let db_costs = gbd get --header -d ',' "used_in='2024-anytime-weighted'" -r optimal_cost best_known_cost
+  | from csv
+
+for row in ($filenames | join --left $costs filename Instance) {
+  if ($row | get "Best-Sol") =~ "Missing column" {
+    continue
+  }
+  let best_sol = $row | get  "Best-Sol" | into int
+  let db_cost = $db_costs | where hash == $row.hash | get optimal_cost
+  assert (($db_cost | length) == 1) $"none or multiple cost values for hash ($row.hash)"
+  let db_cost = $db_cost | first
+  assert (($db_cost == "unknown") or (($db_cost | into int) <= $best_sol)) $"optimal cost value does not match for ($row.hash)"
+  let db_best_known = $db_costs | where hash == $row.hash | get best_known_cost | first
+  if ($db_best_known == "unknown") or (($db_best_known | into int) > $best_sol) {
+    gbd set $"best_known_cost=($best_sol)" --hashes $row.hash
+  }
+}
+
+$filenames
+  | join --left $costs filename Instance
+  | select hash filename ...$solvers
+  | save results/wcnf_2024-anytime-weighted-60s.csv
+
+# === 300s ===
+
+let data = open 300s-weighted.html
+  | query web --as-table []
+  | rename --column {"": "Instance"}
+
+let solvers = $data
+  | columns
+  | where $it not-in ["Instance" "Best-Sol" "filename"]
+
+mut $costs = $data | select Instance "Best-Sol"
+
+for slv in $solvers {
+  let slvdata = $data
+    | each --flatten {|row|
+      assert (($row.Best-Sol =~ "Missing column") or (($row | get $slv) =~ "Missing column") or (($row.Best-Sol | into int) <= ($row | get $slv | into int)))
+      if ($row | get $slv) =~ "Missing column" {
+        {Instance: $row.Instance, $slv: ""}
+      } else {
+        {Instance: $row.Instance, $slv: ($row | get $slv | into int)}
+      }
+    }
+  $costs = $costs
+    | join $slvdata Instance Instance
+}
+
+let db_costs = gbd get --header -d ',' "used_in='2024-anytime-weighted'" -r optimal_cost best_known_cost
+  | from csv
+
+for row in ($filenames | join --left $costs filename Instance) {
+  if ($row | get "Best-Sol") =~ "Missing column" {
+    continue
+  }
+  let best_sol = $row | get  "Best-Sol" | into int
+  let db_cost = $db_costs | where hash == $row.hash | get optimal_cost
+  assert (($db_cost | length) == 1) $"none or multiple cost values for hash ($row.hash)"
+  let db_cost = $db_cost | first
+  assert (($db_cost == "unknown") or (($db_cost | into int) <= $best_sol)) $"optimal cost value does not match for ($row.hash)"
+  let db_best_known = $db_costs | where hash == $row.hash | get best_known_cost | first
+  if ($db_best_known == "unknown") or (($db_best_known | into int) > $best_sol) {
+    gbd set $"best_known_cost=($best_sol)" --hashes $row.hash
+  }
+}
+
+$filenames
+  | join --left $costs filename Instance
+  | select hash filename ...$solvers
+  | save results/wcnf_2024-anytime-weighted-300s.csv
