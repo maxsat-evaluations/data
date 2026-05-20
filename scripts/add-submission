@@ -23,7 +23,7 @@ mkdir -p "$OUT_DIR/$FAMILY"
 
 OUT_DIR="$(realpath -e "$OUT_DIR/$FAMILY")"
 
->&2 echo "Adding $(find "$IN_DIR" \( -name '*.wcnf' -or -name '*.wcnf.gz' -or -name '*.wcnf.xz' \) | wc -l) benchmark instances"
+>&2 echo "Adding $(find "$IN_DIR" \( -name '*.wcnf' -or -name '*.wcnf.gz' -or -name '*.wcnf.xz' \) -not -name '.*' | wc -l) benchmark instances"
 
 FILENAMES=$(mktemp)
 

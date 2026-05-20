@@ -32,7 +32,7 @@ mkdir -p "$OUT_DIR/$TRACK"
 
 OUT_DIR="$(realpath -e "$OUT_DIR/$TRACK")"
 
->&2 echo "Adding $(find "$IN_DIR" \( -name '*.wcnf' -or -name '*.wcnf.gz' -or -name '*.wcnf.xz' \) | wc -l) benchmark instances"
+>&2 echo "Adding $(find "$IN_DIR" \( -name '*.wcnf' -or -name '*.wcnf.gz' -or -name '*.wcnf.xz' \) -not -name '.*' | wc -l) benchmark instances"
 
 FILENAMES="$OUT_DIR/wcnf_filenames.csv"
 echo "hash,filename" >> "$FILENAMES"
