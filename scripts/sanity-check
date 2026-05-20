@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+
+set -eu
+
+if [ $# -ge 1 ]; then
+  QUERY="$1"
+else
+  QUERY=""
+fi
+
+lines=$(mktemp)
+
+gbd get "$QUERY" -d ';' -c min -r local variables h_clauses s_clauses s_weight_min s_weight_max > $lines
+
+i=1
+total=$(cat $lines | wc -l)
+
+while read line; do
+  hash=$(echo $line | cut -d ';' -f 1)
+  path=$(echo $line | cut -d ';' -f 2)
+
+  echo "$i/$total checking $hash"
+
+  gbd_variables=$(echo $line | cut -d ';' -f 3)
+  gbd_h_clauses=$(echo $line | cut -d ';' -f 4)
+  gbd_s_clauses=$(echo $line | cut -d ';' -f 5)
+  gbd_s_weight_min=$(echo $line | cut -d ';' -f 6)
+  gbd_s_weight_max=$(echo $line | cut -d ';' -f 7)
+
+  std_data="$(xz -dc "$path" | head -n27 | tail -n+2 | sed 's/^c//')"
+  std_variables=$(echo $std_data | jq .nvars)
+  std_h_clauses=$(echo $std_data | jq .nhards)
+  std_s_clauses=$(echo $std_data | jq .nsofts)
+  std_s_weight_min=$(echo $std_data | jq .soft_wt_stats.min)
+  std_s_weight_max=$(echo $std_data | jq .soft_wt_stats.max)
+
+  fail=""
+  if [ "$gbd_variables" -ne "$std_variables" ]; then
+    fail="$fail; variables: $gbd_variables!=$std_variables"
+  fi
+  if [ "$gbd_h_clauses" -ne "$std_h_clauses" ]; then
+    fail="$fail; h_clauses: $gbd_h_clauses!=$std_h_clauses"
+  fi
+  if [ "$gbd_s_clauses" -ne "$std_s_clauses" ]; then
+    fail="$fail; s_clauses: $gbd_s_clauses!=$std_s_clauses"
+  fi
+  if [ "$gbd_s_weight_min" -ne "$std_s_weight_min" ]; then
+    fail="$fail; s_weight_min: $gbd_s_weight_min!=$std_s_weight_min"
+  fi
+  if [ "$gbd_s_weight_max" -ne "$std_s_weight_max" ]; then
+    fail="$fail; s_weight_min: $gbd_s_weight_max!=$std_s_weight_max"
+  fi
+  if [ -n "$fail" ]; then
+    >&2 echo "check failed for $hash$fail"
+  fi
+
+  i=$((i+1))
+done <$lines
+
+rm $lines

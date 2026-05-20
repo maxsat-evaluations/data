@@ -17,8 +17,8 @@
           src = fetchFromGitHub {
             owner = "maxsat-evaluations";
             repo = "benchmark-tools";
-            rev = "cab3af33d6d60d09a90028bed250b15c9813bb92";
-            hash = "sha256-dvoLsXwsR0tszT2SOEBJ3yAUcBzLimTIAmQ6lCm0Alo=";
+            rev = "f12cb03e88e76396672fee2c34fab7fdc8c4574a";
+            hash = "sha256-VpglwK/YX7Z0FfHyvwsmvF+JRQsm9q0kQ+It6mLxat8=";
           };
 
           nativeBuildInputs = [

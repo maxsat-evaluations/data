@@ -5,6 +5,7 @@
       devShells.default = pkgs.mkShell {
         nativeBuildInputs = with pkgs; [
           # keep-sorted start
+          jq
           kissat
           self'.packages.gbd
           self'.packages.gbdc-tool
