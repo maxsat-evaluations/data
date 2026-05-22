@@ -10,6 +10,7 @@
           self'.packages.gbd
           self'.packages.gbdc-tool
           self'.packages.nushell
+          self'.packages.runsolver
           self'.packages.wcnf-tools
           unzip
           xz

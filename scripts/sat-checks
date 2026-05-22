@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+
+set -eu
+
+if [ $# -ge 1 ]; then
+  QUERY="$1"
+  shift
+else
+  QUERY=""
+fi
+
+if [ $# -ge 1 ]; then
+  TLIM="$1"
+  shift
+else
+  TLIM="20"
+fi
+
+if [ $# -ge 1 ]; then
+  MLIM="$1"
+  shift
+else
+  MLIM="4000"
+fi
+
+lines=$(mktemp)
+inst=$(mktemp)
+
+wat=$(mktemp)
+var=$(mktemp)
+out=$(mktemp)
+
+gbd get "optimal_cost=unknown and unsat!=yes and ($QUERY)" -d ';' -c min -r local best_known_cost unsat > $lines
+
+i=0
+total=$(cat $lines | wc -l)
+
+while read line; do
+  hash=$(echo $line | cut -d ';' -f 1)
+  path=$(echo $line | cut -d ';' -f 2)
+
+  i=$((i+1))
+  echo "$i/$total checking $hash"
+
+  xz -dc $path > $inst
+
+  to_cnf $inst | runsolver -w $wat -v $var -o $var --cpu-limit $TLIM --vsize-limit $MLIM kissat
+
+  if grep --quiet 'Child status: 10' $wat; then
+    echo "  detected optimal cost = 0"
+    gbd set "optimal_cost=0" --hashes $hash
+    gbd set "best_known_cost=0" --hashes $hash
+    continue
+  fi
+
+  best_known_cost=$(echo $line | cut -d ';' -f 3)
+  if [ "$best_known_cost" != "unknown" ]; then
+    continue
+  fi
+
+  unsat=$(echo $line | cut -d ';' -f 4)
+  if [ "$best_known_cost" == "yes" ]; then
+    continue
+  fi
+
+  to_cnf -hards $inst | runsolver -w $wat -v $var -o $var --cpu-limit $TLIM --vsize-limit $MLIM kissat
+
+  if grep --quiet 'Child status: 20' $wat; then
+    echo "  detected unsat"
+    gbd set "unsat=yes" --hashes $hash
+  elif grep --quiet 'Child status: 10' $wat; then
+    gbd set "unsat=no" --hashes $hash
+  fi
+done <$lines
+
+gbd set "unsat=false" "best_known_cost!=unknown"
+
+rm $lines
+rm $inst
+rm $wat
+rm $var
+rm $out

@@ -12,7 +12,7 @@
         }:
         stdenv.mkDerivation {
           pname = "wcnf-tools";
-          version = "2022-02-07";
+          version = "2026-05-20";
 
           src = fetchFromGitHub {
             owner = "maxsat-evaluations";
