@@ -1,5 +1,0 @@
-check failed for f45fc0de5eab84f9707c675cba4b10cb; s_clauses: 8!=9; s_weight_min: 128!=0
-check failed for f649119ea707ba5962613072215c264f; s_clauses: 14!=15; s_weight_min: 8192!=0
-check failed for f66b57f6b130b8375d78458eafba5841; s_clauses: 14!=15; s_weight_min: 8192!=0
-check failed for fac167e4e0287e008600b860651238e6; s_clauses: 12!=13; s_weight_min: 2048!=0
-check failed for fbd023b1f81069e69a95b35f64044b0c; s_clauses: 8!=9; s_weight_min: 128!=0
