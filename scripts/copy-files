@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+outfile="dedup-instances.txt"
+
+gbd get -d ';' -r local | while read line; do
+  choose=""
+  first_tracks=""
+  for path in $(echo $line | cut -d ';' -f2 | tr ',' '\n'); do
+    if [ -L $path ]; then
+      # skip symlinks
+      continue
+    fi
+    stripped=${path#/mnt/tank/mse-benchmarks/}
+    case "$stripped" in
+      original/*|master_set/*|2*)
+        choose="$stripped"
+        break
+        ;;
+      ms_evals/*|tracks/*)
+        if [ ! -n "$first_tracks" ]; then
+          first_tracks="$stripped"
+        fi
+        ;;
+      *)
+        echo "didnt match $stripped"
+        ;;
+    esac
+  done
+  if [ -n "$choose" ]; then
+    echo "$choose" >> $outfile
+  elif [ -n "$first_tracks" ]; then
+    echo "$first_tracks" >> $outfile
+  else
+    >&2 echo "could not determine preferred path for instance $(echo $line | cut -d ';' -f1)"
+  fi
+done
