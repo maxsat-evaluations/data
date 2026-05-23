@@ -2,6 +2,9 @@
 
 set -euo pipefail
 
+# Disqualify instances without sort clauses
+gbd set "disqualified=yes" "s_clauses=0"
+
 # Disqualify instances with unsat hard clauses
 gbd set "disqualified=yes" "unsat=true"
 
@@ -22,8 +25,6 @@ gbd set "disqualified=yes" "family=parametric-role-based-access-control-maintena
 
 # Random
 gbd set "disqualified=yes" "family=set-covering"
-
-# TODO these (random) families are not properly tracked yet
 gbd set "disqualified=yes" "family=max-clique"
 gbd set "disqualified=yes" "family=max-cut"
 gbd set "disqualified=yes" "family=max-csp"
