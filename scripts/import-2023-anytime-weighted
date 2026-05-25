@@ -5,7 +5,7 @@ use std/assert
 # === 60s ===
 
 # Note: tables have to manually be fixed up
-let data = http get https://maxsat-evaluations.github.io/2024/results/anytime/weighted-60s-table-all.html
+let data = http get https://maxsat-evaluations.github.io/2023/results/anytime/weighted-60s/table-all.html
   | query web --as-table []
   | rename --column {"": "Instance"}
 
@@ -29,9 +29,9 @@ for slv in $solvers {
     | join $slvdata Instance Instance
 }
 
-let filenames = open /mnt/tank/mse-benchmarks/tracks/2024-anytime-weighted/wcnf_filenames.csv
+let filenames = open /mnt/tank/mse-benchmarks/tracks/2023-anytime-weighted/wcnf_filenames.csv
 
-let db_costs = gbd get --header -d ',' "used_in='2024-anytime-weighted'" -r optimal_cost best_known_cost
+let db_costs = gbd get --header -d ',' "used_in='2023-anytime-weighted'" -r optimal_cost best_known_cost
   | from csv
 
 for row in ($filenames | join --left $costs filename Instance) {
@@ -52,11 +52,11 @@ for row in ($filenames | join --left $costs filename Instance) {
 $filenames
   | join --left $costs filename Instance
   | select hash filename ...$solvers
-  | save results/wcnf_2024-anytime-weighted-60s.csv
+  | save results/wcnf_2023-anytime-weighted-60s.csv
 
 # === 300s ===
 
-let data = http get https://maxsat-evaluations.github.io/2024/results/anytime/weighted-300s-table-all.html
+let data = http get https://maxsat-evaluations.github.io/2023/results/anytime/weighted-300s/table-all.html
   | query web --as-table []
   | rename --column {"": "Instance"}
 
@@ -80,7 +80,7 @@ for slv in $solvers {
     | join $slvdata Instance Instance
 }
 
-let db_costs = gbd get --header -d ',' "used_in='2024-anytime-weighted'" -r optimal_cost best_known_cost
+let db_costs = gbd get --header -d ',' "used_in='2023-anytime-weighted'" -r optimal_cost best_known_cost
   | from csv
 
 for row in ($filenames | join --left $costs filename Instance) {
@@ -101,4 +101,4 @@ for row in ($filenames | join --left $costs filename Instance) {
 $filenames
   | join --left $costs filename Instance
   | select hash filename ...$solvers
-  | save results/wcnf_2024-anytime-weighted-300s.csv
+  | save results/wcnf_2023-anytime-weighted-300s.csv

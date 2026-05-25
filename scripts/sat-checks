@@ -73,7 +73,7 @@ while read line; do
   fi
 done <$lines
 
-gbd set "unsat=false" "best_known_cost!=unknown"
+gbd set "unsat=no" "best_known_cost!=unknown"
 
 rm $lines
 rm $inst

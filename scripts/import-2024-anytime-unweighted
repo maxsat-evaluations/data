@@ -5,7 +5,7 @@ use std/assert
 # === 60s ===
 
 # Note: tables have to manually be fixed up
-let data = open 60s-unweighted.html
+let data = http get https://maxsat-evaluations.github.io/2024/results/anytime/unweighted-60s-table-all.html
   | query web --as-table []
   | rename --column {"": "Instance"}
 
@@ -56,7 +56,7 @@ $filenames
 
 # === 300s ===
 
-let data = open 300s-unweighted.html
+let data = http get https://maxsat-evaluations.github.io/2024/results/anytime/unweighted-300s-table-all.html
   | query web --as-table []
   | rename --column {"": "Instance"}
 
