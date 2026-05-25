@@ -1,0 +1,45 @@
+#!/usr/bin/env -S nu --
+
+use std/assert
+
+let runtimes = http get https://maxsat-evaluations.github.io/2024/results/exact/unweighted.csv
+  | update Name {|row| $"($row.Name).xz"}
+
+# Manually fixed up HTML table for costs
+let costs = open unweighted.html
+  | query web --as-table []
+  | select "Unweighted MSE24 Results" O-Value
+  | insert Name {|row| $"($row | get 'Unweighted MSE24 Results').xz"}
+
+let solvers = $runtimes
+  | columns
+  | where $it != Name
+
+let filenames = open /mnt/tank/mse-benchmarks/tracks/2024-exact-unweighted/wcnf_filenames.csv
+  | insert shortened {|row| $row.filename | path basename}
+
+let db_costs = gbd get --header -d ',' "used_in='2024-exact-unweighted'" -r optimal_cost best_known_cost
+  | from csv
+
+for row in ($filenames | join --left $costs shortened Name) {
+  if $row.O-Value == "Missing column: 'O-Value'" or $row.O-Value == "" {
+    continue
+  }
+  let o_val = $row | get "O-Value" | into int
+  let db_cost = $db_costs | where hash == $row.hash | get optimal_cost
+  assert (($db_cost | length) == 1) $"none or multiple cost values for hash ($row.hash)"
+  let db_cost = $db_cost | first
+  assert (($db_cost == "unknown") or (($db_cost | into int) == $o_val)) $"optimal cost value does not match for ($row.hash): ($db_cost) vs ($o_val)"
+  if $db_cost == "unknown" {
+    gbd set $"optimal_cost=($o_val)" --hashes $row.hash
+    gbd set $"best_known_cost=($o_val)" --hashes $row.hash
+  } else {
+    assert (($db_costs | where hash == $row.hash | get best_known_cost | first | into int) == $o_val)
+  }
+}
+
+# Note: data for duplicate filenames (only remaining are unsolved) will automatically be repeated
+$filenames
+  | join --left $runtimes shortened Name
+  | select hash filename ...$solvers
+  | save results/wcnf_2024-exact-unweighted.csv
