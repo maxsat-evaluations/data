@@ -14,6 +14,7 @@
           self'.packages.wcnf-tools
           unzip
           xz
+          zip
           # keep-sorted end
         ];
 

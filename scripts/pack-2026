@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+
+HASHES=$(mktemp)
+select-2026 > $HASHES
+
+UNWEIGHTED=$(mktemp)
+gbd get "s_weight_max=1" -d ';' -c min -r local <$HASHES > $UNWEIGHTED
+
+mkdir unweighted-2026
+while read line; do
+  hash=$(echo $line | cut -d ';' -f1)
+  path=$(echo $line | cut -d ';' -f2)
+  cp $path unweighted-2026/$hash.wcnf.xz
+done <$UNWEIGHTED
+
+gbd get "s_weight_max=1" --header -d ',' -r family optimal_cost best_known_cost <$HASHES > unweighted-2026/meta.csv
+
+zip -r unweighted-2026.zip unweighted-2026
+rm -rf unweighted-2026/
+
+WEIGHTED=$(mktemp)
+gbd get "s_weight_max>1" -d ';' -c min -r local <$HASHES > $WEIGHTED
+
+mkdir weighted-2026
+while read line; do
+  hash=$(echo $line | cut -d ';' -f1)
+  path=$(echo $line | cut -d ';' -f2)
+  cp $path weighted-2026/$hash.wcnf.xz
+done <$WEIGHTED
+
+gbd get "s_weight_max>1" --header -d ',' -r family optimal_cost best_known_cost <$HASHES > weighted-2026/meta.csv
+
+zip -r weighted-2026.zip weighted-2026
+rm -rf weighted-2026/

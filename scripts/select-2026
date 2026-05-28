@@ -1,0 +1,94 @@
+#!/usr/bin/env python3
+
+from os import environ
+import random
+from gbd_core.api import GBD
+
+seeds = [
+    37,  # George
+    18,  # Dieter
+    42,  # Andre
+    73,  # Christoph
+]
+
+seed = 0
+for s in seeds:
+    seed *= 10
+    seed += s
+
+random.seed(seed)
+
+
+def pick_from_year(gbd, base_query, year, pick):
+    instances = {}
+    families = gbd.query(
+        f"({base_query}) and disqualified=no and submitted_in={year}", group_by="family"
+    )["family"]
+
+    for fam in families:
+        hashes = gbd.query(
+            f"({base_query}) and disqualified=no and submitted_in={year} and family={fam}"
+        )["hash"]
+
+        if len(hashes) <= pick:
+            instances[fam] = list(hashes)
+        else:
+            instances[fam] = random.sample(list(hashes), pick)
+
+    return instances
+
+
+def select(gbd, base_query, target=610):
+    n_instances = 0
+    instances = {}
+    pick_per_year = [
+        ("unknown", 5),
+        (2007, 5),
+        (2009, 5),
+        (2013, 5),
+        (2014, 5),
+        (2015, 5),
+        (2016, 5),
+        (2017, 10),
+        (2018, 10),
+        (2019, 10),
+        (2020, 15),
+        (2021, 15),
+        (2022, 15),
+        (2023, 15),
+        (2024, 15),
+        (2026, 25),
+    ]
+
+    for year, pick in pick_per_year:
+        instances[year] = pick_from_year(gbd, base_query, year, pick)
+        for insts in instances[year].values():
+            n_instances += len(insts)
+
+    for year, _ in pick_per_year:
+        while len(instances[year]) > 0 and n_instances > target:
+            fam = random.sample(list(instances[year].keys()), 1)[0]
+            n_instances -= len(instances[year][fam])
+            del instances[year][fam]
+        if len(instances[year]) == 0:
+            del instances[year]
+        else:
+            break
+
+    return instances
+
+
+with GBD(environ["GBD_DB"].split(":")) as gbd:
+    unweighted = select(gbd, "s_weight_max=1")
+
+    for year in unweighted.values():
+        for hashes in year.values():
+            for hash in hashes:
+                print(hash)
+
+    weighted = select(gbd, "s_weight_max>1")
+
+    for year in weighted.values():
+        for hashes in year.values():
+            for hash in hashes:
+                print(hash)
