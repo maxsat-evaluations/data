@@ -21,10 +21,13 @@ gbd set "disqualified=yes" "family=drmx-atmostk"
 
 gbd set "disqualified=yes" "family=maximum-common-subgraph"
 
-gbd set "disqualified=yes" "family=parametric-role-based-access-control-maintenance"
+# Only consider newer submission
+gbd set "disqualified=yes" "family=parametric-role-based-access-control-maintenance and submitted_in=2019"
 
 # Random
 gbd set "disqualified=yes" "family=set-covering"
 gbd set "disqualified=yes" "family=max-clique"
 gbd set "disqualified=yes" "family=max-cut"
 gbd set "disqualified=yes" "family=max-csp"
+gbd set "disqualified=yes" "family=max-one"
+gbd set "disqualified=yes" "family=minimum-width-confidence-band"
