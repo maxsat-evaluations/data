@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+QUERY=$1
+OUTFILE=$2
+
+FILES=$(mktemp)
+gbd get "$QUERY" -c min -r local -d ';' > $FILES
+
+TOTAL=$(cat $FILES | wc -l)
+echo "Archiving $TOTAL instances"
+
+EXPORT=archive
+mkdir $EXPORT
+
+i=1
+while read line; do
+  echo "$i/$TOTAL"
+  hash=$(echo $line | cut -d ';' -f1)
+  path=$(echo $line | cut -d ';' -f2)
+  cp "$path" "$EXPORT/$hash.wcnf.xz"
+  i=$((i+1))
+done <$FILES
+
+cd $EXPORT
+zip -r "$OUTFILE" *.wcnf.xz
+cd ..
+mv "archive/$OUTFILE" .
+rm -rf $EXPORT
