@@ -13,13 +13,13 @@
           }:
           python.pkgs.buildPythonPackage (finalAttrs: {
             pname = "gbd";
-            version = "5.0.1";
+            version = "5.2.0";
 
             src = fetchFromGitHub {
-              owner = "chrjabs";
+              owner = "Udopia";
               repo = "gbd";
-              rev = "mse-26";
-              hash = "sha256-4xOmNO/8uta8u4G4nVMIb0ZiUj1Fl5glw1wGC4Cjb78=";
+              tag = "gbd-tools-${finalAttrs.version}";
+              hash = "sha256-bk4FAHybB9CKZJO9nTj1dJ6ERY7gNS2viG6pG/sGQWo=";
             };
 
             pyproject = true;
@@ -63,15 +63,15 @@
             scikit-build-core,
             ninja,
           }:
-          python.pkgs.buildPythonPackage {
+          python.pkgs.buildPythonPackage (finalAttrs: {
             pname = "gbdc";
-            version = "0.3.5";
+            version = "0.4.0";
 
             src = fetchFromGitHub {
               owner = "Udopia";
               repo = "gbdc";
-              rev = "d03875b98d3062fec717c231975a4fb5e2ebe551";
-              hash = "sha256-jbktIZqUZ334Ts3uKiQ2gb0g5QP44E84OfHmZqtzUE4=";
+              tag = "gbdc-${finalAttrs.version}";
+              hash = "sha256-IxnuWgz8wUhXkD3pKBF8RF/i9engSVTaGv01hhNzR6w=";
             };
 
             patches = [ ./gbdc-cmake-system-cadical.patch ];
@@ -90,7 +90,7 @@
               libarchive
               cadical
             ];
-          }
+          })
         ) { };
 
         gbdc-tool = pkgs.callPackage (
@@ -102,15 +102,15 @@
             cmake,
             python3,
           }:
-          stdenv.mkDerivation {
+          stdenv.mkDerivation (finalAttrs: {
             pname = "gbdc";
-            version = "0.3.5";
+            version = "0.4.0";
 
             src = fetchFromGitHub {
               owner = "Udopia";
               repo = "gbdc";
-              rev = "d03875b98d3062fec717c231975a4fb5e2ebe551";
-              hash = "sha256-jbktIZqUZ334Ts3uKiQ2gb0g5QP44E84OfHmZqtzUE4=";
+              tag = "gbdc-${finalAttrs.version}";
+              hash = "sha256-IxnuWgz8wUhXkD3pKBF8RF/i9engSVTaGv01hhNzR6w=";
             };
 
             patches = [ ./gbdc-cmake-system-cadical.patch ];
@@ -129,7 +129,7 @@
               libarchive
               cadical
             ];
-          }
+          })
         ) { };
       };
     };

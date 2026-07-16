@@ -2,6 +2,7 @@
 
 from os import environ
 import random
+import tomllib
 from gbd_core.api import GBD
 
 seeds = [
@@ -78,7 +79,11 @@ def select(gbd, base_query, target=610):
     return instances
 
 
-with GBD(environ["GBD_DB"].split(":")) as gbd:
+with open(environ["GBD"], "rb") as configf:
+    config = tomllib.load(configf)
+dbs = config["databases"]["paths"]
+
+with GBD(dbs) as gbd:
     unweighted = select(gbd, "s_weight_max=1")
 
     for year in unweighted.values():

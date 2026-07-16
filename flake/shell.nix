@@ -18,9 +18,14 @@
           # keep-sorted end
         ];
 
-        GBD_DB = "wcnf_meta.db:wcnf_base.db";
         shellHook = ''
           export PATH="''${PATH:+$PATH:}scripts"
+          if [ -z "$LOCAL_DB" ]; then
+            export GBD=gbd.toml
+          else
+            ${pkgs.lib.getExe' pkgs.yq "tomlq"} -t '.databases.paths |= ["'"$LOCAL_DB"'"] + .' gbd.toml > patched-gbd.toml
+            export GBD=patched-gbd.toml
+          fi
         '';
       };
     };

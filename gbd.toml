@@ -1,0 +1,15 @@
+# MSE GBD configuration
+
+[databases]
+paths = ["meta.db", "base.db"]
+
+[contexts]
+default = "wcnf"
+wcnf = { suffix = ".wcnf", idfunc = "wcnf_hash", description = "Weighted CNF (WCNF)" }
+
+[extractors]
+base = { tool = "gbdc wcnfbase", contexts = [
+  "wcnf",
+], description = "Extract base features from WCNF files." }
+
+[transformers]
