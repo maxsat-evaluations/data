@@ -43,3 +43,5 @@ line to `.env`.
 ```
 echo 'export GBD_DB="<path to local db>:$GBD_DB"' >> .env
 ```
+
+For a description of the metadata included in the databases, see [`metadata.md`](metadata.md)
