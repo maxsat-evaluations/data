@@ -34,7 +34,7 @@ $costs = $costs
     { Benchmark: $row.Benchmark, cost: $min }
   }
 
-let filenames = open /mnt/tank/mse-benchmarks/tracks/2020-complete-weighted/wcnf_filenames.csv
+let filenames = open /mnt/tank/mse-benchmarks/tracks/2020-complete-weighted/filenames.csv
   | insert shortened {|row| $"($row.filename | path dirname | path basename)/($row.filename | path basename)"}
 
 let solved_instances = $costs | length
@@ -64,4 +64,4 @@ for row in $costs {
 $filenames
   | join --left $runtimes shortened Benchmark
   | select hash filename ...$solvers
-  | save results/wcnf_2020-complete-weighted.csv
+  | save results/2020-complete-weighted.csv

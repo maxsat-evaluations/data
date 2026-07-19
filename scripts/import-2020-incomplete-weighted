@@ -26,7 +26,7 @@ for slv in $solvers {
     | merge ($slvdata | select cost | rename --column { cost: $slv })
 }
 
-let filenames = open /mnt/tank/mse-benchmarks/tracks/2020-incomplete-weighted/wcnf_filenames.csv
+let filenames = open /mnt/tank/mse-benchmarks/tracks/2020-incomplete-weighted/filenames.csv
   | insert shortened {|row| $"($row.filename | path dirname | path basename)-($row.filename | path basename)"}
 
 let db_costs = gbd get --header -d ',' "used_in='2020-incomplete-weighted'" -r optimal_cost best_known_cost
@@ -52,7 +52,7 @@ $filenames
   | join --left ($scores | rename --column ($solvers | each {|slv| { $slv: $"($slv)_score" } } | into record)) shortened Benchmark
   | join --left ($costs | rename --column ($solvers | each {|slv| { $slv: $"($slv)_cost" } } | into record)) shortened Benchmark
   | select hash filename ...($solvers | each {|slv| [$"($slv)_score" $"($slv)_cost"]} | flatten)
-  | save results/wcnf_2020-incomplete-weighted-60s.csv
+  | save results/2020-incomplete-weighted-60s.csv
 
 # === 300s ===
 
@@ -101,4 +101,4 @@ $filenames
   | join --left ($scores | rename --column ($solvers | each {|slv| { $slv: $"($slv)_score" } } | into record)) shortened Benchmark
   | join --left ($costs | rename --column ($solvers | each {|slv| { $slv: $"($slv)_cost" } } | into record)) shortened Benchmark
   | select hash filename ...($solvers | each {|slv| [$"($slv)_score" $"($slv)_cost"]} | flatten)
-  | save results/wcnf_2020-incomplete-weighted-300s.csv
+  | save results/2020-incomplete-weighted-300s.csv

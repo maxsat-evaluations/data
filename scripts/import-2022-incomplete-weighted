@@ -52,7 +52,7 @@ for slv in $solvers {
     | merge ($slvdata | select cost | rename --column { cost: $slv })
 }
 
-let filenames = open /mnt/tank/mse-benchmarks/tracks/2022-incomplete-weighted/wcnf_filenames.csv
+let filenames = open /mnt/tank/mse-benchmarks/tracks/2022-incomplete-weighted/filenames.csv
   | insert shortened {|row| $row.filename | path basename}
   | update shortened {|row|
     if $row.shortened in ($duplicates | get short) {
@@ -86,7 +86,7 @@ $filenames
   | join --left ($scores | rename --column ($solvers | each {|slv| { $slv: $"($slv)_score" } } | into record)) shortened filename
   | join --left ($costs | rename --column ($solvers | each {|slv| { $slv: $"($slv)_cost" } } | into record)) shortened filename
   | select hash filename ...($solvers | each {|slv| [$"($slv)_score" $"($slv)_cost"]} | flatten)
-  | save results/wcnf_2022-incomplete-weighted-60s.csv
+  | save results/2022-incomplete-weighted-60s.csv
 
 # === 300s ===
 
@@ -146,4 +146,4 @@ $filenames
   | join --left ($scores | rename --column ($solvers | each {|slv| { $slv: $"($slv)_score" } } | into record)) shortened filename
   | join --left ($costs | rename --column ($solvers | each {|slv| { $slv: $"($slv)_cost" } } | into record)) shortened filename
   | select hash filename ...($solvers | each {|slv| [$"($slv)_score" $"($slv)_cost"]} | flatten)
-  | save results/wcnf_2022-incomplete-weighted-300s.csv
+  | save results/2022-incomplete-weighted-300s.csv

@@ -31,7 +31,7 @@ $costs = $costs
     { Benchmark: $row.Benchmark, cost: $max }
   }
 
-let filenames = open /mnt/tank/mse-benchmarks/tracks/2021-complete-unweighted/wcnf_filenames.csv
+let filenames = open /mnt/tank/mse-benchmarks/tracks/2021-complete-unweighted/filenames.csv
   | insert shortened {|row| $row.filename | path basename}
   | update shortened {|row|
     # Subdirectories are converted into .n. extensions without a record of this
@@ -81,4 +81,4 @@ for row in $costs {
 $filenames
   | join --left $runtimes shortened Benchmark
   | select hash filename ...$solvers
-  | save results/wcnf_2021-complete-unweighted.csv
+  | save results/2021-complete-unweighted.csv

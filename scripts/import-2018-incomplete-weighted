@@ -67,7 +67,7 @@ $scores
   | rename --column ($solvers | each {|slv| { $slv: $"($slv)_score" } } | into record)
   | join ($costs | rename --column ($solvers | each {|slv| { $slv: $"($slv)_cost" } } | into record)) hash hash
   | select hash filename ...($solvers | each {|slv| [$"($slv)_score" $"($slv)_cost"]} | flatten)
-  | save results/wcnf_2018-incomplete-weighted-60s.csv
+  | save results/2018-incomplete-weighted-60s.csv
 
 # === 300s ===
 
@@ -127,4 +127,4 @@ $scores
   | rename --column ($solvers | each {|slv| { $slv: $"($slv)_score" } } | into record)
   | join ($costs | rename --column ($solvers | each {|slv| { $slv: $"($slv)_cost" } } | into record)) hash hash
   | select hash filename ...($solvers | each {|slv| [$"($slv)_score" $"($slv)_cost"]} | flatten)
-  | save results/wcnf_2018-incomplete-weighted-300s.csv
+  | save results/2018-incomplete-weighted-300s.csv

@@ -66,4 +66,4 @@ for row in $costs {
 
 $runtimes
   | select hash filename ...$solvers
-  | save results/wcnf_2017-complete-unweighted.csv
+  | save results/2017-complete-unweighted.csv

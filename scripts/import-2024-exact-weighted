@@ -15,7 +15,7 @@ let solvers = $runtimes
   | columns
   | where $it != Name
 
-let filenames = open /mnt/tank/mse-benchmarks/tracks/2024-exact-weighted/wcnf_filenames.csv
+let filenames = open /mnt/tank/mse-benchmarks/tracks/2024-exact-weighted/filenames.csv
   | insert shortened {|row| $row.filename | path basename}
 
 let db_costs = gbd get --header -d ',' "used_in='2024-exact-weighted'" -r optimal_cost best_known_cost
@@ -42,4 +42,4 @@ for row in ($filenames | join --left $costs shortened Name) {
 $filenames
   | join --left $runtimes shortened Name
   | select hash filename ...$solvers
-  | save results/wcnf_2024-exact-weighted.csv
+  | save results/2024-exact-weighted.csv

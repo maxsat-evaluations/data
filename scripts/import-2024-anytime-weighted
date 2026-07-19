@@ -29,7 +29,7 @@ for slv in $solvers {
     | join $slvdata Instance Instance
 }
 
-let filenames = open /mnt/tank/mse-benchmarks/tracks/2024-anytime-weighted/wcnf_filenames.csv
+let filenames = open /mnt/tank/mse-benchmarks/tracks/2024-anytime-weighted/filenames.csv
 
 let db_costs = gbd get --header -d ',' "used_in='2024-anytime-weighted'" -r optimal_cost best_known_cost
   | from csv
@@ -52,7 +52,7 @@ for row in ($filenames | join --left $costs filename Instance) {
 $filenames
   | join --left $costs filename Instance
   | select hash filename ...$solvers
-  | save results/wcnf_2024-anytime-weighted-60s.csv
+  | save results/2024-anytime-weighted-60s.csv
 
 # === 300s ===
 
@@ -101,4 +101,4 @@ for row in ($filenames | join --left $costs filename Instance) {
 $filenames
   | join --left $costs filename Instance
   | select hash filename ...$solvers
-  | save results/wcnf_2024-anytime-weighted-300s.csv
+  | save results/2024-anytime-weighted-300s.csv

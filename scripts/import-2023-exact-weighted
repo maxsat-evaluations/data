@@ -37,7 +37,7 @@ $costs = $costs
     }
   }
 
-let filenames = open /mnt/tank/mse-benchmarks/tracks/2023-exact-weighted/wcnf_filenames.csv
+let filenames = open /mnt/tank/mse-benchmarks/tracks/2023-exact-weighted/filenames.csv
   | insert shortened {|row| $row.filename | path basename}
 
 let solved_instances = $costs | length
@@ -67,4 +67,4 @@ for row in $costs {
 $filenames
   | join --left $runtimes shortened Benchmark
   | select hash filename ...$solvers
-  | save results/wcnf_2023-exact-weighted.csv
+  | save results/2023-exact-weighted.csv
