@@ -1,0 +1,445 @@
+#!/usr/bin/env -S nu --
+
+# === EXACT-UW ===
+
+let rawdata = open ~/results/EXACT-UW/3600/EXACT-UW_rawdata.csv
+
+let solvers = $rawdata | get solvername | uniq
+
+mut data = gbd get "used_in='2026-exact-unweighted'" | lines | wrap "hash"
+
+for slv in $solvers {
+  $data = $data | insert $slv {|row|
+    let dat = $rawdata | where instance == $"($row.hash).wcnf" | where solvername == $slv | first
+    if $dat.answer == "OPTIMUM FOUND" {
+      if $dat.verified == 0 {
+        "incorrect"
+      } else {
+        $dat | get "cpu.time"
+      }
+    } else {
+      if $dat.timeout == "true" {
+        "timeout"
+      } else {
+        if $dat.memout == "true" {
+          "memout"
+        } else {
+          "unknown"
+        }
+      }
+    }
+  }
+}
+
+$data | save results/2026-exact-unweighted.csv
+
+let optvals = $rawdata
+  | group-by instance --to-table
+  | insert optval {|row|
+    let valid_vals = $row.items
+      | where verified == 1
+      | where answer == "OPTIMUM FOUND"
+    if ($valid_vals | length) == 0 {
+      "unknown"
+    } else {
+      $valid_vals | get "optval" | math min
+    }
+  }
+  | select instance optval
+
+for row in $optvals {
+  let hash = $row.instance | str replace '.wcnf' ''
+  let optval = $row.optval
+  if $optval == NA or $optval == "unknown" {
+  } else {
+    let gbd_val = gbd get $"hash like ($hash)" -r optimal_cost | cut -d ' ' -f2
+    if $gbd_val == "unknown" {
+      gbd set $"optimal_cost=($optval)" $"hash like ($hash)"
+      gbd set $"best_known_cost=($optval)" $"hash like ($hash)"
+    }
+  }
+}
+
+# === EXACT-W ===
+
+let rawdata = open ~/results/EXACT-W/3600/EXACT-W_rawdata.csv
+
+let solvers = $rawdata | get solvername | uniq
+
+mut data = gbd get "used_in='2026-exact-weighted'" | lines | wrap "hash"
+
+for slv in $solvers {
+  $data = $data | insert $slv {|row|
+    let dat = $rawdata | where instance == $"($row.hash).wcnf" | where solvername == $slv | first
+    if $dat.answer == "OPTIMUM FOUND" {
+      if $dat.verified == 0 {
+        "incorrect"
+      } else {
+        $dat | get "cpu.time"
+      }
+    } else {
+      if $dat.timeout == "true" {
+        "timeout"
+      } else {
+        if $dat.memout == "true" {
+          "memout"
+        } else {
+          "unknown"
+        }
+      }
+    }
+  }
+}
+
+$data | save results/2026-exact-weighted.csv
+
+let optvals = $rawdata
+  | group-by instance --to-table
+  | insert optval {|row|
+    let valid_vals = $row.items
+      | where verified == 1
+      | where answer == "OPTIMUM FOUND"
+    if ($valid_vals | length) == 0 {
+      "unknown"
+    } else {
+      $valid_vals | get "optval" | math min
+    }
+  }
+  | select instance optval
+
+for row in $optvals {
+  let hash = $row.instance | str replace '.wcnf' ''
+  let optval = $row.optval
+  if $optval == NA or $optval == "unknown" {
+  } else {
+    let gbd_val = gbd get $"hash like ($hash)" -r optimal_cost | cut -d ' ' -f2
+    if $gbd_val == "unknown" {
+      gbd set $"optimal_cost=($optval)" $"hash like ($hash)"
+      gbd set $"best_known_cost=($optval)" $"hash like ($hash)"
+    }
+  }
+}
+
+# === ANYTIME-UW 60 ===
+
+let rawdata = open ~/results/ANYTIME-UW/60/ANYTIME-UW_60_rawdata.csv
+
+let solvers = $rawdata | get solvername | uniq
+
+mut data = gbd get "used_in='2026-anytime-unweighted'" | lines | wrap "hash"
+
+for slv in $solvers {
+  $data = $data | insert $slv {|row|
+    let dat = $rawdata | where instance == $"($row.hash).wcnf" | where solvername == $slv | first
+    if $dat.verified == 0 {
+      "incorrect"
+    } else {
+      if $dat.answer in ["OPTIMUM FOUND" "SATISFIABLE"] {
+        $dat.optval
+      } else {
+        "no-sol"
+      }
+    }
+  }
+}
+
+$data | save results/2026-anytime-unweighted-60s.csv
+
+let best = $rawdata
+  | group-by instance --to-table
+  | insert best {|row|
+    let valid_vals = $row.items
+      | where verified == 1
+    if ($valid_vals | length) == 0 {
+      "unknown"
+    } else {
+      $valid_vals | get "optval" | math min
+    }
+  }
+  | select instance best
+
+for row in $best {
+  let hash = $row.instance | str replace '.wcnf' ''
+  let best = $row.best
+  if $best == "unknown" {
+  } else {
+    let gbd_val = gbd get $"hash like ($hash)" -r best_known_cost | cut -d ' ' -f2
+    if $gbd_val == "unknown" {
+      gbd set $"best_known_cost=($best)" $"hash like ($hash)"
+    } else {
+      if ($gbd_val | into int) > ($best | into int) {
+        gbd set $"best_known_cost=($best)" $"hash like ($hash)"
+      }
+    }
+  }
+}
+
+# === ANYTIME-UW 300 ===
+
+let rawdata = open ~/results/ANYTIME-UW/300/ANYTIME-UW_300_rawdata.csv
+
+let solvers = $rawdata | get solvername | uniq
+
+mut data = gbd get "used_in='2026-anytime-unweighted'" | lines | wrap "hash"
+
+for slv in $solvers {
+  $data = $data | insert $slv {|row|
+    let dat = $rawdata | where instance == $"($row.hash).wcnf" | where solvername == $slv | first
+    if $dat.verified == 0 {
+      "incorrect"
+    } else {
+      if $dat.answer in ["OPTIMUM FOUND" "SATISFIABLE"] {
+        $dat.optval
+      } else {
+        "no-sol"
+      }
+    }
+  }
+}
+
+$data | save results/2026-anytime-unweighted-300s.csv
+
+let best = $rawdata
+  | group-by instance --to-table
+  | insert best {|row|
+    let valid_vals = $row.items
+      | where verified == 1
+    if ($valid_vals | length) == 0 {
+      "unknown"
+    } else {
+      $valid_vals | get "optval" | math min
+    }
+  }
+  | select instance best
+
+for row in $best {
+  let hash = $row.instance | str replace '.wcnf' ''
+  let best = $row.best
+  if $best == "unknown" {
+  } else {
+    let gbd_val = gbd get $"hash like ($hash)" -r best_known_cost | cut -d ' ' -f2
+    if $gbd_val == "unknown" {
+      gbd set $"best_known_cost=($best)" $"hash like ($hash)"
+    } else {
+      if ($gbd_val | into int) > ($best | into int) {
+        gbd set $"best_known_cost=($best)" $"hash like ($hash)"
+      }
+    }
+  }
+}
+
+# === ANYTIME-UW 1707 ===
+
+let rawdata = open ~/results/ANYTIME-UW/1707/ANYTIME-UW_1707_rawdata.csv
+
+let solvers = $rawdata | get solvername | uniq
+
+mut data = gbd get "used_in='2026-anytime-unweighted'" | lines | wrap "hash"
+
+for slv in $solvers {
+  $data = $data | insert $slv {|row|
+    let dat = $rawdata | where instance == $"($row.hash).wcnf" | where solvername == $slv | first
+    if $dat.verified == 0 {
+      "incorrect"
+    } else {
+      if $dat.answer in ["OPTIMUM FOUND" "SATISFIABLE"] {
+        $dat.optval
+      } else {
+        "no-sol"
+      }
+    }
+  }
+}
+
+$data | save results/2026-anytime-unweighted-1707s.csv
+
+let best = $rawdata
+  | group-by instance --to-table
+  | insert best {|row|
+    let valid_vals = $row.items
+      | where verified == 1
+    if ($valid_vals | length) == 0 {
+      "unknown"
+    } else {
+      $valid_vals | get "optval" | math min
+    }
+  }
+  | select instance best
+
+for row in $best {
+  let hash = $row.instance | str replace '.wcnf' ''
+  let best = $row.best
+  if $best == "unknown" {
+  } else {
+    let gbd_val = gbd get $"hash like ($hash)" -r best_known_cost | cut -d ' ' -f2
+    if $gbd_val == "unknown" {
+      gbd set $"best_known_cost=($best)" $"hash like ($hash)"
+    } else {
+      if ($gbd_val | into int) > ($best | into int) {
+        gbd set $"best_known_cost=($best)" $"hash like ($hash)"
+      }
+    }
+  }
+}
+
+# === ANYTIME-W 60 ===
+
+let rawdata = open ~/results/ANYTIME-W/60/ANYTIME-W_60_rawdata.csv
+
+let solvers = $rawdata | get solvername | uniq
+
+mut data = gbd get "used_in='2026-anytime-weighted'" | lines | wrap "hash"
+
+for slv in $solvers {
+  $data = $data | insert $slv {|row|
+    let dat = $rawdata | where instance == $"($row.hash).wcnf" | where solvername == $slv | first
+    if $dat.verified == 0 {
+      "incorrect"
+    } else {
+      if $dat.answer in ["OPTIMUM FOUND" "SATISFIABLE"] {
+        $dat.optval
+      } else {
+        "no-sol"
+      }
+    }
+  }
+}
+
+$data | save results/2026-anytime-weighted-60s.csv
+
+let best = $rawdata
+  | group-by instance --to-table
+  | insert best {|row|
+    let valid_vals = $row.items
+      | where verified == 1
+    if ($valid_vals | length) == 0 {
+      "unknown"
+    } else {
+      $valid_vals | get "optval" | math min
+    }
+  }
+  | select instance best
+
+for row in $best {
+  let hash = $row.instance | str replace '.wcnf' ''
+  let best = $row.best
+  if $best == "unknown" {
+  } else {
+    let gbd_val = gbd get $"hash like ($hash)" -r best_known_cost | cut -d ' ' -f2
+    if $gbd_val == "unknown" {
+      gbd set $"best_known_cost=($best)" $"hash like ($hash)"
+    } else {
+      if ($gbd_val | into int) > ($best | into int) {
+        gbd set $"best_known_cost=($best)" $"hash like ($hash)"
+      }
+    }
+  }
+}
+
+# === ANYTIME-W 300 ===
+
+let rawdata = open ~/results/ANYTIME-W/300/ANYTIME-W_300_rawdata.csv
+
+let solvers = $rawdata | get solvername | uniq
+
+mut data = gbd get "used_in='2026-anytime-weighted'" | lines | wrap "hash"
+
+for slv in $solvers {
+  $data = $data | insert $slv {|row|
+    let dat = $rawdata | where instance == $"($row.hash).wcnf" | where solvername == $slv | first
+    if $dat.verified == 0 {
+      "incorrect"
+    } else {
+      if $dat.answer in ["OPTIMUM FOUND" "SATISFIABLE"] {
+        $dat.optval
+      } else {
+        "no-sol"
+      }
+    }
+  }
+}
+
+$data | save results/2026-anytime-weighted-300s.csv
+
+let best = $rawdata
+  | group-by instance --to-table
+  | insert best {|row|
+    let valid_vals = $row.items
+      | where verified == 1
+    if ($valid_vals | length) == 0 {
+      "unknown"
+    } else {
+      $valid_vals | get "optval" | math min
+    }
+  }
+  | select instance best
+
+for row in $best {
+  let hash = $row.instance | str replace '.wcnf' ''
+  let best = $row.best
+  if $best == "unknown" {
+  } else {
+    let gbd_val = gbd get $"hash like ($hash)" -r best_known_cost | cut -d ' ' -f2
+    if $gbd_val == "unknown" {
+      gbd set $"best_known_cost=($best)" $"hash like ($hash)"
+    } else {
+      if ($gbd_val | into int) > ($best | into int) {
+        gbd set $"best_known_cost=($best)" $"hash like ($hash)"
+      }
+    }
+  }
+}
+
+# === ANYTIME-W 1707 ===
+
+let rawdata = open ~/results/ANYTIME-W/1707/ANYTIME-W_1707_rawdata.csv
+
+let solvers = $rawdata | get solvername | uniq
+
+mut data = gbd get "used_in='2026-anytime-weighted'" | lines | wrap "hash"
+
+for slv in $solvers {
+  $data = $data | insert $slv {|row|
+    let dat = $rawdata | where instance == $"($row.hash).wcnf" | where solvername == $slv | first
+    if $dat.verified == 0 {
+      "incorrect"
+    } else {
+      if $dat.answer in ["OPTIMUM FOUND" "SATISFIABLE"] {
+        $dat.optval
+      } else {
+        "no-sol"
+      }
+    }
+  }
+}
+
+$data | save results/2026-anytime-weighted-1707s.csv
+
+let best = $rawdata
+  | group-by instance --to-table
+  | insert best {|row|
+    let valid_vals = $row.items
+      | where verified == 1
+    if ($valid_vals | length) == 0 {
+      "unknown"
+    } else {
+      $valid_vals | get "optval" | math min
+    }
+  }
+  | select instance best
+
+for row in $best {
+  let hash = $row.instance | str replace '.wcnf' ''
+  let best = $row.best
+  if $best == "unknown" {
+  } else {
+    let gbd_val = gbd get $"hash like ($hash)" -r best_known_cost | cut -d ' ' -f2
+    if $gbd_val == "unknown" {
+      gbd set $"best_known_cost=($best)" $"hash like ($hash)"
+    } else {
+      if ($gbd_val | into int) > ($best | into int) {
+        gbd set $"best_known_cost=($best)" $"hash like ($hash)"
+      }
+    }
+  }
+}
