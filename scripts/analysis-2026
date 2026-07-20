@@ -1,0 +1,254 @@
+#!/usr/bin/env -S nu --
+
+$env.config.float_precision = 3
+
+def stats [disqualified: list<string>, ...solvers: string] {
+  let data = $in
+    | insert vbs {|row|
+      let vals = $row
+        | select ...($solvers | where $it not-in $disqualified)
+        | values
+        | where $it not-in ["timeout" "memout" "unknown"]
+      if ($vals | length) > 0 {
+        $vals | into float | math min
+      } else {
+        "timeout"
+      }
+    }
+  ($solvers ++ ["vbs"])
+  | each {|slv|
+    let total = $data | length
+    let solved = $data
+      | where {|it| ($it | get $slv) not-in ["timeout" "memout" "unknown"]}
+    let sum_time = $solved
+      | get $slv
+      | into float
+      | math sum
+    {
+      "solver": (if $slv in $disqualified { $"($slv)*" } else { $slv }),
+      "n-solved": ($solved | length),
+      "avg-time": ($sum_time / ($solved | length)),
+      "par-2": (($sum_time + ($total - ($solved | length)) * 7200) / $total),
+    }
+  }
+  | sort-by -c {|first, second| if ($first | get "n-solved") == ($second | get "n-solved") { ($first | get "avg-time") < ($second | get "avg-time") } else { ($first | get "n-solved") > ($second | get "n-solved") }}
+}
+
+def solved-per-family [query: string, disqualified: list<string>, ...solvers: string] {
+  let data = $in
+  let fam_dat = gbd get $query -H -d ',' -r family | from csv
+  let data = $data | join $fam_dat hash hash
+  let families = $data | get "family" | uniq
+  $families
+  | each {|fam|
+    $solvers
+    | each {|slv|
+      let val = $data | where {|it| $it.family == $fam and (($it | get $slv) not-in ["timeout" "memout" "unknown"])} | length
+      if $slv in $disqualified { {$"($slv)*": $val} } else { {$slv: $val} }
+    }
+    | into record
+    | insert total ($data | where {|it| $it.family == $fam} | length)
+    | insert family $fam
+  }
+  | select family total ...($solvers | each {|slv| if $slv in $disqualified { $"($slv)*" } else { $slv }})
+}
+
+print ""
+print "# EXACT-UW"
+print ""
+
+let disqualified = []
+
+let data = open results/2026-exact-unweighted.csv
+
+let solvers = $data
+  | columns
+  | where $it != "hash"
+
+let res = $data | stats $disqualified ...$solvers
+$res | to html -p | save -f results/2026-exact-unweighted.html
+$res | to md --pretty | print
+
+print ""
+print "## Solved Per Family"
+print ""
+
+let res = $data | solved-per-family "used_in='2026-exact-unweighted'" $disqualified ...$solvers
+$res | to html -p | save -f results/2026-exact-unweighted-by-family.html
+$res | to md --pretty | print
+
+print ""
+print "# EXACT-W"
+print ""
+
+let disqualified = ["COGS"]
+
+let data = open results/2026-exact-weighted.csv
+
+let solvers = $data
+  | columns
+  | where $it != "hash"
+
+let res = $data | stats $disqualified ...$solvers
+$res | to html -p | save -f results/2026-exact-weighted.html
+$res | to md --pretty | print
+
+print ""
+print "## Solved Per Family"
+print ""
+
+let res = $data | solved-per-family "used_in='2026-exact-weighted'" $disqualified ...$solvers
+$res | to html -p | save -f results/2026-exact-weighted-by-family.html
+$res | to md --pretty | print
+
+# === ANYTIME ===
+
+def anytime-stats [query: string, disqualified: list<string>, ...solvers: string] {
+  let t60 = $in
+    | get "t60"
+    | insert vbs {|row|
+      let vals = $row
+        | select ...($solvers | where $it not-in $disqualified)
+        | values
+        | where $it not-in ["incorrect" "no-sol"]
+      if ($vals | length) > 0 {
+        $vals | into float | math min
+      } else {
+        "no-sol"
+      }
+    }
+  let t300 = $in
+    | get "t300"
+    | insert vbs {|row|
+      let vals = $row
+        | select ...($solvers | where $it not-in $disqualified)
+        | values
+        | where $it not-in ["incorrect" "no-sol"]
+      if ($vals | length) > 0 {
+        $vals | into float | math min
+      } else {
+        "no-sol"
+      }
+    }
+  let t1707 = $in
+    | get "t1707"
+    | insert vbs {|row|
+      let vals = $row
+        | select ...($solvers | where $it not-in $disqualified)
+        | values
+        | where $it not-in ["incorrect" "no-sol"]
+      if ($vals | length) > 0 {
+        $vals | into float | math min
+      } else {
+        "no-sol"
+      }
+    }
+  let best_known = gbd get $query --header -d',' -r best_known_cost | from csv
+  ($solvers ++ ["vbs"])
+  | each {|slv|
+    let data = $t60
+      | select hash $slv
+      | rename --column { $slv: "t60" }
+      | join ($t300 | select hash $slv | rename --column { $slv: "t300" }) hash hash
+      | join ($t1707 | select hash $slv | rename --column { $slv: "t1707" }) hash hash
+      | join $best_known hash hash
+    {
+      "solver": (if $slv in $disqualified { $"($slv)*" } else { $slv }),
+      "60s": ($data
+        | each {|row|
+          if ($row | get "t60") in ["incorrect" "no-sol"] {
+            0
+          } else {
+            ((($row | get "best_known_cost") + 1) / (($row | get "t60" | into int) + 1))
+          }
+        }
+        | math avg
+      ),
+      "300s": ($data
+        | each {|row|
+          if ($row | get "t300") in ["incorrect" "no-sol"] {
+            0
+          } else {
+            ((($row | get "best_known_cost") + 1) / (($row | get "t300" | into int) + 1))
+          }
+        }
+        | math avg
+      ),
+      "1707s": ($data
+        | each {|row|
+          if ($row | get "t1707") in ["incorrect" "no-sol"] {
+            0
+          } else {
+            ((($row | get "best_known_cost") + 1) / (($row | get "t1707" | into int) + 1))
+          }
+        }
+        | math avg
+      ),
+    }
+  }
+  | sort-by --reverse "60s"
+}
+
+print ""
+print "# ANYTIME-UW"
+print ""
+
+let disqualified = ["HWS", "PX-TT-Open-WBO-Inc"]
+
+let data = {
+  "t60": (open results/2026-anytime-unweighted-60s.csv),
+  "t300": (open results/2026-anytime-unweighted-300s.csv),
+  "t1707": (open results/2026-anytime-unweighted-1707s.csv),
+}
+
+let solvers = $data
+  | get "t60"
+  | columns
+  | where $it != "hash"
+
+let res = $data | anytime-stats "used_in='2026-anytime-unweighted'" $disqualified ...$solvers
+$res | to html -p | save -f results/2026-anytime-unweighted.html
+print ""
+print "## 60s timeout"
+print ""
+$res | select solver "60s" | sort-by --reverse "60s" | to md --pretty | print
+print ""
+print "## 300s timeout"
+print ""
+$res | select solver "300s" | sort-by --reverse "300s" | to md --pretty | print
+print ""
+print "## 1707s timeout"
+print ""
+$res | select solver "1707s" | sort-by --reverse "1707s" | to md --pretty | print
+
+print ""
+print "# ANYTIME-W"
+print ""
+
+let disqualified = ["HWS", "PX-TT-Open-WBO-Inc"]
+
+let data = {
+  "t60": (open results/2026-anytime-weighted-60s.csv),
+  "t300": (open results/2026-anytime-weighted-300s.csv),
+  "t1707": (open results/2026-anytime-weighted-1707s.csv),
+}
+
+let solvers = $data
+  | get "t60"
+  | columns
+  | where $it != "hash"
+
+let res = $data | anytime-stats "used_in='2026-anytime-weighted'" $disqualified ...$solvers
+$res | to html -p | save -f results/2026-anytime-weighted.html
+print ""
+print "## 60s timeout"
+print ""
+$res | select solver "60s" | sort-by --reverse "60s" | to md --pretty | print
+print ""
+print "## 300s timeout"
+print ""
+$res | select solver "300s" | sort-by --reverse "300s" | to md --pretty | print
+print ""
+print "## 1707s timeout"
+print ""
+$res | select solver "1707s" | sort-by --reverse "1707s" | to md --pretty | print
