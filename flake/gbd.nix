@@ -13,13 +13,13 @@
           }:
           python.pkgs.buildPythonPackage (finalAttrs: {
             pname = "gbd";
-            version = "5.2.0";
+            version = "5.3.2";
 
             src = fetchFromGitHub {
               owner = "Udopia";
               repo = "gbd";
               tag = "gbd-tools-${finalAttrs.version}";
-              hash = "sha256-bk4FAHybB9CKZJO9nTj1dJ6ERY7gNS2viG6pG/sGQWo=";
+              hash = "sha256-sxD22504ZS/PmhLBjjK5FGyIgi2zK+LUxwbi0h0YBDw=";
             };
 
             pyproject = true;
@@ -65,13 +65,13 @@
           }:
           python.pkgs.buildPythonPackage (finalAttrs: {
             pname = "gbdc";
-            version = "0.4.0";
+            version = "0.4.3";
 
             src = fetchFromGitHub {
               owner = "Udopia";
               repo = "gbdc";
-              tag = "gbdc-${finalAttrs.version}";
-              hash = "sha256-IxnuWgz8wUhXkD3pKBF8RF/i9engSVTaGv01hhNzR6w=";
+              rev = "9f3a418c47bc4ecef9f940a39db2752a456632b7";
+              hash = "sha256-UBVoxT8UkMmklJu4CTjEYkG4460SdV5H5RI8zgjP7pA=";
             };
 
             patches = [ ./gbdc-cmake-system-cadical.patch ];
@@ -104,13 +104,13 @@
           }:
           stdenv.mkDerivation (finalAttrs: {
             pname = "gbdc";
-            version = "0.4.0";
+            version = "0.4.3";
 
             src = fetchFromGitHub {
               owner = "Udopia";
               repo = "gbdc";
-              tag = "gbdc-${finalAttrs.version}";
-              hash = "sha256-IxnuWgz8wUhXkD3pKBF8RF/i9engSVTaGv01hhNzR6w=";
+              rev = "9f3a418c47bc4ecef9f940a39db2752a456632b7";
+              hash = "sha256-UBVoxT8UkMmklJu4CTjEYkG4460SdV5H5RI8zgjP7pA=";
             };
 
             patches = [ ./gbdc-cmake-system-cadical.patch ];

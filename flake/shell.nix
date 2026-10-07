@@ -1,22 +1,29 @@
-{
+{ inputs, ... }: {
   perSystem =
-    { pkgs, self', ... }:
+    {
+      pkgs,
+      self',
+      system,
+      ...
+    }:
     {
       devShells.default = pkgs.mkShell {
-        nativeBuildInputs = with pkgs; [
-          # keep-sorted start
-          jq
-          kissat
-          self'.packages.gbd
-          self'.packages.gbdc-tool
-          self'.packages.nushell
-          self'.packages.runsolver
-          self'.packages.wcnf-tools
-          unzip
-          xz
-          zip
-          # keep-sorted end
-        ];
+        nativeBuildInputs =
+          with pkgs;
+          [
+            # keep-sorted start
+            inputs.wcnf-tools.packages.${system}.default
+            jq
+            kissat
+            self'.packages.gbd
+            self'.packages.gbdc-tool
+            self'.packages.nushell
+            unzip
+            xz
+            zip
+            # keep-sorted end
+          ]
+          ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [ self'.packages.runsolver ];
 
         shellHook = ''
           export PATH="''${PATH:+$PATH:}scripts"

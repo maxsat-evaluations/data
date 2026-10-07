@@ -69,7 +69,8 @@
         "flake-parts": "flake-parts",
         "import-tree": "import-tree",
         "nixpkgs": "nixpkgs",
-        "treefmt-nix": "treefmt-nix"
+        "treefmt-nix": "treefmt-nix",
+        "wcnf-tools": "wcnf-tools"
       }
     },
     "treefmt-nix": {
@@ -89,6 +90,29 @@
       "original": {
         "owner": "numtide",
         "repo": "treefmt-nix",
+        "type": "github"
+      }
+    },
+    "wcnf-tools": {
+      "inputs": {
+        "flake-parts": [
+          "flake-parts"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1791373516,
+        "narHash": "sha256-La9ewHUo0PFhAhX/FiOV2ZVUM3o0diAELhwUBN7UDLg=",
+        "owner": "maxsat-evaluations",
+        "repo": "benchmark-tools",
+        "rev": "40c08301bef85f8a4b87718f70e4f53ff71e17f4",
+        "type": "github"
+      },
+      "original": {
+        "owner": "maxsat-evaluations",
+        "repo": "benchmark-tools",
         "type": "github"
       }
     }

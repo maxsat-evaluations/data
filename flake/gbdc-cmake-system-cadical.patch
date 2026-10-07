@@ -1,17 +1,16 @@
-diff --git a/CMakeLists.txt b/CMakeLists.txt
-index d9c8453..7f3ab20 100644
---- a/CMakeLists.txt
-+++ b/CMakeLists.txt
-@@ -11,56 +11,16 @@ include(CTest)
- set(CMAKE_CXX_STANDARD 17)
- set(CMAKE_CXX_STANDARD_REQUIRED True)
+diff --git a/extras/gate/CMakeLists.txt b/extras/gate/CMakeLists.txt
+index 96f7c8fdf9..7b362be3ef 100644
+--- a/extras/gate/CMakeLists.txt
++++ b/extras/gate/CMakeLists.txt
+@@ -10,54 +10,14 @@
+ include_directories("${GBDC_ROOT}")
  
+ # --- CaDiCaL ---
 -set(CADICAL_ARCH_SUFFIX "${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
 -if(APPLE AND CMAKE_OSX_ARCHITECTURES)
 -    string(REPLACE ";" "_" CADICAL_ARCH_SUFFIX "macos-${CMAKE_OSX_ARCHITECTURES}")
 -endif()
-+find_library(CADICAL_LIB libcadical.a)
- 
+-
 -set(CADICAL_PREFIX "${CMAKE_BINARY_DIR}/solvers-${CADICAL_ARCH_SUFFIX}")
 -set(CADICAL_DIR ${CADICAL_PREFIX}/src/cadical_external/build)
 -set(CADICAL_LIB ${CADICAL_DIR}/libcadical.a)
@@ -32,16 +31,16 @@ index d9c8453..7f3ab20 100644
 -    endif()
 -endif()
 -
--if (EXISTS ${CADICAL_LIB})
--    message(STATUS "Cadical found at ${CADICAL_LIB}")
+-if(EXISTS ${CADICAL_LIB})
+-    message(STATUS "CaDiCaL found at ${CADICAL_LIB}")
 -    add_library(cadical STATIC IMPORTED)
 -    set_target_properties(cadical PROPERTIES IMPORTED_LOCATION "${CADICAL_LIB}")
++find_library(CADICAL_LIB libcadical.a)
 +if (${CADICAL_LIB} MATCHES "CADICAL_LIB-NOTFOUND")
 +    message(FATAL_ERROR, "Expected to find system-wide CaDiCaL version")
  else()
--    message(STATUS "Building Cadical")
+-    message(STATUS "Building CaDiCaL")
 -    include(ExternalProject)
--
 -    ExternalProject_Add(cadical_external
 -        GIT_REPOSITORY https://github.com/arminbiere/cadical.git
 -        GIT_TAG master
@@ -53,22 +52,12 @@ index d9c8453..7f3ab20 100644
 -        BUILD_IN_SOURCE 1
 -    )
 +    message("Found system-wide CaDiCaL version at ${CADICAL_LIB}")
-+    add_library(cadical STATIC IMPORTED)
  endif()
--    
-+
+ 
  add_library(solver STATIC IMPORTED)
--if (NOT EXISTS ${CADICAL_LIB})
+-if(NOT EXISTS ${CADICAL_LIB})
 -    add_dependencies(solver cadical_external)
 -endif()
--
  set_target_properties(solver PROPERTIES IMPORTED_LOCATION "${CADICAL_LIB}")
  
- if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-@@ -95,4 +55,4 @@ add_test(NAME Test_StreamBuffer COMMAND "test/tests_streambuffer")
- # add_test(NAME Test_Feature_Extraction COMMAND "test/tests_feature_extraction")
- add_test(NAME Test_StreamCompressor COMMAND "test/tests_streamcompressor")
- add_test(NAME Test_GBDLib COMMAND "test/tests_gbdlib")
--add_test(NAME Test_IsoHash2 COMMAND "test/tests_isohash2")
-\ No newline at end of file
-+add_test(NAME Test_IsoHash2 COMMAND "test/tests_isohash2")
+ find_package(LibArchive REQUIRED)
